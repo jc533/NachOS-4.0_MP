@@ -85,9 +85,11 @@ class FileSystem {
     }
     int WriteFile(char *buffer, int size, OpenFileId id){
         OpenFile *file = OpenFileTable[id];
-        file->;
+        return file->Write(buffer,size);
     }
     int ReadFile(char *buffer, int size, OpenFileId id){
+        OpenFile *file = OpenFileTable[id];
+        return file->Read(buffer,size);
     }
     int CloseFile(OpenFileId id){
         OpenFile *file = OpenFileTable[id];
