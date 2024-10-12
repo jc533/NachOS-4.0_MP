@@ -71,19 +71,28 @@ class FileSystem {
     OpenFileId OpenAFile(char *name) {
         OpenFile* file = Open(name);
         OpenFileId fid = -1;
-        if (file && currentFId<20){
-            OpenFileTable[currentFId] = file;
-            fid = currentFId;
-            currentFId++;
+        OpenFileId i;
+        for(i=0;i<20;i++){
+            if(!OpenFileTable[i]){
+                break;
+            }
+        }
+        if (file && i<20){
+            OpenFileTable[i] = file;
+            fid = i;
         }
         return fid;
     }
-    int WriteFile(char *buffer, int size, OpenFileId id);
+    int WriteFile(char *buffer, int size, OpenFileId id){
+        OpenFile *file = OpenFileTable[id];
+        file->;
+    }
     int ReadFile(char *buffer, int size, OpenFileId id){
     }
     int CloseFile(OpenFileId id){
         OpenFile *file = OpenFileTable[id];
-        Close(file)
+        file->~OpenFile();
+        OpenFileTable[id] = NULL;
     }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
