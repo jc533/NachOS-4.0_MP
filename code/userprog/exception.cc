@@ -124,6 +124,23 @@ void ExceptionHandler(ExceptionType which) {
                     return;
                     ASSERTNOTREACHED();
                     break;
+                case SC_Open:
+                    DEBUG(dbgFile, "Open file\n");
+                    val = kernel->machine->ReadRegister(4);
+                    // cout << "wtf" << endl;
+                    {
+                        char *filename = &(kernel->machine->mainMemory[val]);
+                        // cout << filename << endl;
+                        int fid = SysOpen(filename);
+                        // status = SysCreate(filename);
+                        kernel->machine->WriteRegister(2, (int)fid);
+                    };
+                    kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+                    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+                    kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+                    return;
+                    ASSERTNOTREACHED();
+                    break;
                 case SC_Exit:
                     DEBUG(dbgAddr, "Program exit\n");
                     val = kernel->machine->ReadRegister(4);

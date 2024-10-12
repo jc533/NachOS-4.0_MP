@@ -45,7 +45,9 @@ typedef int OpenFileId;
 
 class FileSystem {
    public:
+    OpenFileId currentFId;
     FileSystem() {
+        currentFId = 0;
         for (int i = 0; i < 20; i++) OpenFileTable[i] = NULL;
     }
 
@@ -66,15 +68,23 @@ class FileSystem {
     }
 
     //  The OpenAFile function is used for kernel open system call
-    /*  OpenFileId OpenAFile(char *name) {
+    OpenFileId OpenAFile(char *name) {
+        OpenFile* file = Open(name);
+        OpenFileId fid = -1;
+        if (file && currentFId<20){
+            OpenFileTable[currentFId] = file;
+            fid = currentFId;
+            currentFId++;
         }
-        int WriteFile(char *buffer, int size, OpenFileId id){
-        }
-        int ReadFile(char *buffer, int size, OpenFileId id){
-        }
-        int CloseFile(OpenFileId id){
-        }
-    */
+        return fid;
+    }
+    int WriteFile(char *buffer, int size, OpenFileId id);
+    int ReadFile(char *buffer, int size, OpenFileId id){
+    }
+    int CloseFile(OpenFileId id){
+        OpenFile *file = OpenFileTable[id];
+        Close(file)
+    }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
 
