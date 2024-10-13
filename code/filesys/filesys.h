@@ -77,6 +77,9 @@ class FileSystem {
                 break;
             }
         }
+        if(!file || i == 20){
+            return -1;
+        }
         if (file && i<20){
             OpenFileTable[i] = file;
             fid = i;
@@ -84,17 +87,28 @@ class FileSystem {
         return fid;
     }
     int WriteFile(char *buffer, int size, OpenFileId id){
+        if (id < 0 || id >= 20 || !OpenFileTable[id])
+            return -1;
         OpenFile *file = OpenFileTable[id];
-        return file->Write(buffer,size*4);
+        if(!(file->Write(buffer,size)))
+            return -1;
+        return file->Write(buffer,size);
     }
     int ReadFile(char *buffer, int size, OpenFileId id){
+        if (id < 0 || id >= 20 || !OpenFileTable[id])
+            return -1;
         OpenFile *file = OpenFileTable[id];
-        return file->Read(buffer,size*4);
+        if(!(file->Read(buffer,size)))
+            return -1;
+        return file->Read(buffer,size);
     }
     int CloseFile(OpenFileId id){
+        if (id < 0 || id >= 20 || !OpenFileTable[id])
+            return -1;
         OpenFile *file = OpenFileTable[id];
         file->~OpenFile();
         OpenFileTable[id] = NULL;
+        return 1;
     }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
