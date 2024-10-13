@@ -77,9 +77,6 @@ class FileSystem {
                 break;
             }
         }
-        if(!file || i == 20){
-            return -1;
-        }
         if (file && i<20){
             OpenFileTable[i] = file;
             fid = i;
