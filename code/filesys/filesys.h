@@ -78,9 +78,12 @@ class FileSystem {
         OpenFileId fid = -1;
         OpenFileId i;
         for (int j = 0; j < 20; j++){
-            if(strcmp(filename[j] , name) == 0){
-                return -1;
+            if(filename[j]){
+                if( strcmp(filename[j] , name) == 0){
+                    return -1;
+                }
             }
+            
         }
         for(i=0;i<20;i++){
             if(!OpenFileTable[i]){
