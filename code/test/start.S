@@ -178,8 +178,17 @@ Write:
         j       $31
         .end  Write
 
+        .globl  Read
+        .ent     Read
+Read:
+        addiu $2,$0,SC_Read
+        syscall
+        j       $31
+        .end  Read
+
         .globl  Close
         .ent     Close
+
 Close:
         addiu $2,$0,SC_Close
         syscall
