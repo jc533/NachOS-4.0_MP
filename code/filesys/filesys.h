@@ -89,6 +89,7 @@ class FileSystem {
         } 
         if (file && i<20){ //check exists and legal
             OpenFileTable[i] = file;
+            filename[i] = name;
             fid = i;
         }
         return fid;
@@ -116,13 +117,14 @@ class FileSystem {
         OpenFile *file = OpenFileTable[id];
         file->~OpenFile();
         OpenFileTable[id] = NULL;
+        filename[id] = NULL;
         return 1;
     }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
 
     OpenFile *OpenFileTable[20];
-   private:
+    
     char *filename[20];
 
 };
