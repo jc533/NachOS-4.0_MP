@@ -37,6 +37,7 @@
 #include "debug.h"  //just for test!!!
 #include "openfile.h"
 #include "sysdep.h"
+#include "string.h"
 
 #ifdef FILESYS_STUB  // Temporarily implement file system calls as
                      // calls to UNIX, until the real file system
@@ -45,10 +46,14 @@ typedef int OpenFileId;
 
 class FileSystem {
    public:
-    OpenFileId currentFId;
+    //OpenFileId currentFId;
     FileSystem() {
-        currentFId = 0;
-        for (int i = 0; i < 20; i++) OpenFileTable[i] = NULL;
+        //currentFId = 0;
+        for (int i = 0; i < 20; i++) {
+            OpenFileTable[i] = NULL;
+            filename[i] = NULL;
+        }
+            
     }
 
     bool Create(char *name) {
@@ -72,7 +77,11 @@ class FileSystem {
         OpenFile* file = Open(name);
         OpenFileId fid = -1;
         OpenFileId i;
-        
+        for (int j = 0; j < 20; j++){
+            if(strcmp(filename[j] , name) == 0){
+                return -1;
+            }
+        }
         for(i=0;i<20;i++){
             if(!OpenFileTable[i]){
                 break; //find first open
