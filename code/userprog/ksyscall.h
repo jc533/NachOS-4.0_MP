@@ -40,7 +40,13 @@ OpenFileId SysOpen(char *name){
     return kernel->fileSystem->OpenAFile(name);
 }
 
-OpenFileId SysRead(char *name){
-    return kernel->fileSystem->OpenAFile(name);
+OpenFileId SysRead(char *buffer, int size, OpenFileId id){
+    return kernel->fileSystem->ReadFile(buffer, size, id);
+}
+OpenFileId SysWrite(char *buffer, int size, OpenFileId id){
+    return kernel->fileSystem->WriteFile(buffer, size, id);
+}
+OpenFileId SysClose(OpenFileId id){
+    return kernel->fileSystem->CloseFile(id);
 }
 #endif /* ! __USERPROG_KSYSCALL_H__ */
