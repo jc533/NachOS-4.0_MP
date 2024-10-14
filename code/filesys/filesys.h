@@ -72,12 +72,16 @@ class FileSystem {
         OpenFile* file = Open(name);
         OpenFileId fid = -1;
         OpenFileId i;
+        for(int j = 0; j < 20; j++){
+            //if()
+            //    return -1; //check duplicate
+        }
         for(i=0;i<20;i++){
             if(!OpenFileTable[i]){
-                break;
+                break; //find first open
             }
-        }
-        if (file && i<20){
+        } 
+        if (file && i<20){ //check exists and legal
             OpenFileTable[i] = file;
             fid = i;
         }
