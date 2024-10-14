@@ -145,6 +145,7 @@ void ExceptionHandler(ExceptionType which) {
                     //		arg2 -- r5
                     //		arg3 -- r6
                     //		arg4 -- r7
+                    DEBUG(dbgSys, "File Read\n");
                     val = kernel->machine->ReadRegister(4);
                     { //do magic
                         char *buffer = &(kernel->machine->mainMemory[val]);
@@ -160,6 +161,7 @@ void ExceptionHandler(ExceptionType which) {
                     ASSERTNOTREACHED();
                     break;
                 case SC_Write:
+                    DEBUG(dbgSys, "File Write\n");
                     val = kernel->machine->ReadRegister(4);
                     { //do magic
                         char *buffer = &(kernel->machine->mainMemory[val]);
@@ -175,6 +177,7 @@ void ExceptionHandler(ExceptionType which) {
                     ASSERTNOTREACHED();
                     break;
                 case SC_Close:
+                    DEBUG(dbgSys, "File Close\n");
                     val = kernel->machine->ReadRegister(4);
                     { //do magic
                         char *buffer = &(kernel->machine->mainMemory[val]);

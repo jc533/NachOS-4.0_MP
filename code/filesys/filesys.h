@@ -72,10 +72,7 @@ class FileSystem {
         OpenFile* file = Open(name);
         OpenFileId fid = -1;
         OpenFileId i;
-        for(int j = 0; j < 20; j++){
-            //if()
-            //    return -1; //check duplicate
-        }
+        
         for(i=0;i<20;i++){
             if(!OpenFileTable[i]){
                 break; //find first open
@@ -91,7 +88,8 @@ class FileSystem {
         if (id < 0 || id >= 20 || !OpenFileTable[id])
             return -1;
         OpenFile *file = OpenFileTable[id];
-        if(!(file->Write(buffer,size)))
+        
+        if(!file)
             return -1;
         return file->Write(buffer,size);
     }
@@ -99,7 +97,7 @@ class FileSystem {
         if (id < 0 || id >= 20 || !OpenFileTable[id])
             return -1;
         OpenFile *file = OpenFileTable[id];
-        if(!(file->Read(buffer,size)))
+        if(!file)
             return -1;
         return file->Read(buffer,size);
     }
@@ -115,6 +113,9 @@ class FileSystem {
     bool Remove(char *name) { return Unlink(name) == 0; }
 
     OpenFile *OpenFileTable[20];
+   private:
+    char *filename[20];
+
 };
 
 #else  // FILESYS
