@@ -190,7 +190,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.readonlyData.size > 0) {
         int pagesNum = noffH.initData.size /PageSize;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.initData.virtualAddr,&paddr,0) == NoException){
+            if (Translate(noffH.readonlyData.virtualAddr,&paddr,0) == NoException){
                 // kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
