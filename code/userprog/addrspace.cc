@@ -71,6 +71,7 @@ AddrSpace::AddrSpace() {
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
         pageTable[i].readOnly = FALSE;
+        kernel->pageUsed.Append(i);
     }
 
     // zero out the entire address space

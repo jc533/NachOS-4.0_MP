@@ -71,6 +71,7 @@ class Kernel {
     int execRunningNum;  // number of running threads
 
     int hostName;  // machine identifier
+    List<int> pageUsed;
 
    private:
     Thread *t[10];
