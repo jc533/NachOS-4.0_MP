@@ -158,7 +158,7 @@ bool AddrSpace::Load(char *fileName) {
         int pagesNum = noffH.code.size/PageSize;
         vaddr += noffH.code.virtualAddr;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1) == NoException){
+            if (Translate(noffH.code.virtualAddr+i,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
@@ -173,7 +173,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.initData.size > 0) {
         int pagesNum = noffH.initData.size /PageSize;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
+            if (Translate(noffH.initData.virtualAddr+i,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
@@ -190,7 +190,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.readonlyData.size > 0) {
         int pagesNum = noffH.readonlyData.size /PageSize;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,0) == NoException){
+            if (Translate(noffH.readonlyData.virtualAddr+i,&paddr,0) == NoException){
                 // kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
