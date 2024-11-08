@@ -71,7 +71,6 @@ AddrSpace::AddrSpace() {
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
         pageTable[i].readOnly = FALSE;
-        kernel->pageUsed.Append(i);
     }
 
     // zero out the entire address space
@@ -105,6 +104,7 @@ bool AddrSpace::Load(char *fileName) {
     OpenFile *executable = kernel->fileSystem->Open(fileName);
     NoffHeader noffH;
     unsigned int size;
+    unsigned int paddr;
 
     if (executable == NULL) {
         cerr << "Unable to open file " << fileName << "\n";
@@ -140,28 +140,73 @@ bool AddrSpace::Load(char *fileName) {
 
     // then, copy in the code and data segments into memory
     // Note: this code assumes that virtual address = physical address
+    // bool valid;
+    // for(int i=0;i<NumPhysPages;i++){
+    //     valid = TRUE;
+    //     for(int j=0;j<kernel->pageUsed.NumInList();j++){
+    //         if(i==kernel->pageUsed.Front()){
+    //             valid = FALSE;
+    //         }
+    //         int tmp =  kernel->pageUsed.Front();
+    //         kernel->pageUsed.RemoveFront();
+    //         kernel->pageUsed.Append(tmp);
+    //     }
+    //     pageTable[i].valid = valid;
+    // }
     if (noffH.code.size > 0) {
-        DEBUG(dbgAddr, "Initializing code segment.");
-        DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
-        executable->ReadAt(
-            &(kernel->machine->mainMemory[noffH.code.virtualAddr]),
-            noffH.code.size, noffH.code.inFileAddr);
-    }
+        int pagesNum = noffH.code.size/PageSize;
+        for(int i=0;i<pagesNum;i++){
+            int vaddrNum = 0;
+            for(int j=0;j<NumPhysPages;j++){
+                if(kernel->pageUsed.IsInList(j)){
+                    vaddrNum++;
+                }else{
+                    break;
+                }
+            }
+            if (Translate(noffH.code.virtualAddr,&paddr,1) == NoException){
+                kernel->pageUsed.Append(paddr);
+            }else{
+                return FALSE;
+            }
+            DEBUG(dbgAddr, "Initializing code segment.");
+            DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
+            executable->ReadAt(
+                &(kernel->machine->mainMemory[paddr]),
+                PageSize, noffH.code.inFileAddr);
+        }
+}
     if (noffH.initData.size > 0) {
-        DEBUG(dbgAddr, "Initializing data segment.");
-        DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
-        executable->ReadAt(
-            &(kernel->machine->mainMemory[noffH.initData.virtualAddr]),
-            noffH.initData.size, noffH.initData.inFileAddr);
+        int pagesNum = noffH.initData.size /PageSize;
+        for(int i=0;i<pagesNum;i++){
+            if (Translate(noffH.initData.size,&paddr,1) == NoException){
+                kernel->pageUsed.Append(paddr);
+            }else{
+                return FALSE;
+            }
+            DEBUG(dbgAddr, "Initializing data segment.");
+            DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
+            executable->ReadAt(
+                &(kernel->machine->mainMemory[noffH.initData.virtualAddr]),
+                PageSize, noffH.initData.inFileAddr);
+        }
     }
 
 #ifdef RDATA
     if (noffH.readonlyData.size > 0) {
-        DEBUG(dbgAddr, "Initializing read only data segment.");
-        DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
-        executable->ReadAt(
-            &(kernel->machine->mainMemory[noffH.readonlyData.virtualAddr]),
-            noffH.readonlyData.size, noffH.readonlyData.inFileAddr);
+        int pagesNum = noffH.initData.size /PageSize;
+        for(int i=0;i<pagesNum;i++){
+            if (Translate(noffH.initData.size,&paddr,0) == NoException){
+                kernel->pageUsed.Append(paddr);
+            }else{
+                return FALSE;
+            }
+            DEBUG(dbgAddr, "Initializing read only data segment.");
+            DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
+            executable->ReadAt(
+                &(kernel->machine->mainMemory[noffH.readonlyData.virtualAddr]),
+                PageSize, noffH.readonlyData.inFileAddr);
+        }
     }
 #endif
 
