@@ -158,7 +158,7 @@ bool AddrSpace::Load(char *fileName) {
         int pagesNum = noffH.code.size/PageSize;
         vaddr += noffH.code.virtualAddr;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.code.virtualAddr+i,&paddr,1) == NoException){
+            if (Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
@@ -169,39 +169,39 @@ bool AddrSpace::Load(char *fileName) {
                 &(kernel->machine->mainMemory[paddr]),
                 PageSize, noffH.code.inFileAddr);
         }
-}
-    if (noffH.initData.size > 0) {
-        int pagesNum = noffH.initData.size /PageSize;
-        for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.initData.virtualAddr+i,&paddr,1) == NoException){
-                // kernel->pageUsed.Append(paddr);
-            }else{
-                return FALSE;
-            }
-            DEBUG(dbgAddr, "Initializing data segment.");
-            DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
-            executable->ReadAt(
-                &(kernel->machine->mainMemory[noffH.initData.virtualAddr]),
-                PageSize, noffH.initData.inFileAddr);
-        }
     }
+    // if (noffH.initData.size > 0) {
+    //     int pagesNum = noffH.initData.size /PageSize;
+    //     for(int i=0;i<pagesNum;i++){
+    //         if (Translate(noffH.initData.virtualAddr+i,&paddr,1) == NoException){
+    //             // kernel->pageUsed.Append(paddr);
+    //         }else{
+    //             return FALSE;
+    //         }
+    //         DEBUG(dbgAddr, "Initializing data segment.");
+    //         DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
+    //         executable->ReadAt(
+    //             &(kernel->machine->mainMemory[noffH.initData.virtualAddr]),
+    //             PageSize, noffH.initData.inFileAddr);
+    //     }
+    // }
 
 #ifdef RDATA
-    if (noffH.readonlyData.size > 0) {
-        int pagesNum = noffH.readonlyData.size /PageSize;
-        for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.readonlyData.virtualAddr+i,&paddr,0) == NoException){
-                // kernel->pageUsed.Append(paddr);
-            }else{
-                return FALSE;
-            }
-            DEBUG(dbgAddr, "Initializing read only data segment.");
-            DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
-            executable->ReadAt(
-                &(kernel->machine->mainMemory[noffH.readonlyData.virtualAddr]),
-                PageSize, noffH.readonlyData.inFileAddr);
-        }
-    }
+    // if (noffH.readonlyData.size > 0) {
+    //     int pagesNum = noffH.readonlyData.size /PageSize;
+    //     for(int i=0;i<pagesNum;i++){
+    //         if (Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,0) == NoException){
+    //             // kernel->pageUsed.Append(paddr);
+    //         }else{
+    //             return FALSE;
+    //         }
+    //         DEBUG(dbgAddr, "Initializing read only data segment.");
+    //         DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
+    //         executable->ReadAt(
+    //             &(kernel->machine->mainMemory[noffH.readonlyData.virtualAddr]),
+    //             PageSize, noffH.readonlyData.inFileAddr);
+    //     }
+    // }
 #endif
 
     delete executable;  // close file
