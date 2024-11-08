@@ -153,17 +153,11 @@ bool AddrSpace::Load(char *fileName) {
     //     }
     //     pageTable[i].valid = valid;
     // }
+    int vaddr=0;
     if (noffH.code.size > 0) {
         int pagesNum = noffH.code.size/PageSize;
+        vaddr += noffH.code.virtualAddr;
         for(int i=0;i<pagesNum;i++){
-            int vaddrNum = 0;
-            for(int j=0;j<NumPhysPages;j++){
-                if(kernel->pageUsed.IsInList(j)){
-                    vaddrNum++;
-                }else{
-                    break;
-                }
-            }
             if (Translate(noffH.code.virtualAddr,&paddr,1) == NoException){
                 kernel->pageUsed.Append(paddr);
             }else{
@@ -179,7 +173,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.initData.size > 0) {
         int pagesNum = noffH.initData.size /PageSize;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.initData.size,&paddr,1) == NoException){
+            if (Translate(noffH.initData.virtualAddr,&paddr,1) == NoException){
                 kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
@@ -196,7 +190,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.readonlyData.size > 0) {
         int pagesNum = noffH.initData.size /PageSize;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.initData.size,&paddr,0) == NoException){
+            if (Translate(noffH.initData.virtualAddr,&paddr,0) == NoException){
                 kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
