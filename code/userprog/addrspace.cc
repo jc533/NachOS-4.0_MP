@@ -85,6 +85,10 @@ AddrSpace::AddrSpace() {
 
 AddrSpace::~AddrSpace() {
     delete pageTable;
+    while (kernel->pageUsed.IsEmpty()){
+        kernel->pageUsed.RemoveFront();
+    }
+    
 }
 
 //----------------------------------------------------------------------
