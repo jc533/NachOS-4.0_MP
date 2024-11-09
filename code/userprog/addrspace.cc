@@ -141,11 +141,10 @@ bool AddrSpace::Load(char *fileName) {
     // then, copy in the code and data segments into memory
     // Note: this code assumes that virtual address = physical address
     
-    int vaddr=0;
+    int load;
+    int pagesNum;
     if (noffH.code.size > 0) {
-        int pagesNum = noffH.code.size/PageSize;
-        int load;
-        vaddr += noffH.code.virtualAddr;
+        pagesNum = noffH.code.size/PageSize;
         for(int i=0;i<pagesNum;i++){
             if (Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
@@ -165,8 +164,7 @@ bool AddrSpace::Load(char *fileName) {
     }
     
     if (noffH.initData.size > 0) {
-        int pagesNum = noffH.initData.size/PageSize;
-        int load;
+        pagesNum = noffH.initData.size/PageSize;
         for(int i=0;i<pagesNum;i++){
             if (Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
@@ -187,8 +185,7 @@ bool AddrSpace::Load(char *fileName) {
 
 #ifdef RDATA
     if (noffH.readonlyData.size > 0) {
-        int load;
-        int pagesNum = noffH.readonlyData.size /PageSize;
+        pagesNum = noffH.readonlyData.size /PageSize;
         for(int i=0;i<pagesNum;i++){
             if (Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,0) == NoException){
                 // kernel->pageUsed.Append(paddr);
@@ -197,10 +194,10 @@ bool AddrSpace::Load(char *fileName) {
             }
             DEBUG(dbgAddr, "Initializing read only data segment.");
             DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
-            // if ((i+1) * PageSize < noffH.readonlyData.size)
+            if ((i+1) * PageSize < noffH.readonlyData.size)
                 load = PageSize;
-            // else
-            //     load = size - i * PageSize;
+            else
+                load = size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.readonlyData.inFileAddr + i * PageSize);
