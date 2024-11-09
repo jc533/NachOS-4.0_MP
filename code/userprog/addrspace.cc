@@ -177,25 +177,25 @@ bool AddrSpace::Load(char *fileName) {
         }
     }
     
-    if (noffh.initData.size > 0) {
-        int pagesNum = noffh.initData.size/PageSize;
+    if (noffH.initData.size > 0) {
+        int pagesNum = noffH.initData.size/PageSize;
         int load;
-        vaddr += noffh.initData.virtualAddr;
+        vaddr += noffH.initData.virtualAddr;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffh.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
+            if (Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
             }else{
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing code segment.");
-            DEBUG(dbgAddr, noffh.initData.virtualAddr << ", " << noffh.initData.size);
-            if (i * PageSize < noffh.initData.size)
+            DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffh.initData.size);
+            if (i * PageSize < noffH.initData.size)
                 load = PageSize;
             else
-                load = noffh.initData.size % PageSize;
+                load = noffH.initData.size % PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
-                load, noffh.initData.inFileAddr + i * PageSize);
+                load, noffH.initData.inFileAddr + i * PageSize);
         }
     }
     // if (noffH.initData.size > 0) {
