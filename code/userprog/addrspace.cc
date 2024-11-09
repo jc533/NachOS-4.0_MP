@@ -96,11 +96,13 @@ AddrSpace::AddrSpace() {
 //----------------------------------------------------------------------
 
 AddrSpace::~AddrSpace() {
+    for(int i = 0; i < NumPhysPages; i++){
+        pageTable[i].valid = FALSE;
+    }
     delete pageTable;
     while (!kernel->pageUsed.IsEmpty()){
         kernel->pageUsed.RemoveFront();
     }
-    
 }
 
 //----------------------------------------------------------------------
@@ -116,8 +118,7 @@ bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
     for(int j=0;j<NumPhysPages;j++){
         bool used = 0;
         for(int k=0;k<kernel->pageUsed.NumInList();k++){
-            int tmp = kernel->pageUsed.Front();
-            kernel->pageUsed.RemoveFront();
+            int tmp = kernel->pageUsed.RemoveFront();
             kernel->pageUsed.Append(tmp);
             if(tmp == j){
                 used = 1;
@@ -125,6 +126,7 @@ bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
             }
         }
         if(!used){
+            pageTable[tg].virtualPage = tg;
             pageTable[tg].physicalPage = j;
             pageTable[tg].valid = TRUE;
             pageTable[tg].readOnly = onlyread;
@@ -177,8 +179,10 @@ bool AddrSpace::Load(char *fileName) {
     
     int load;
     int pagesNum;
+    int pagesLeft = numPages;
     if (noffH.code.size > 0) {
         pagesNum = divRoundUp(noffH.code.size, PageSize);
+        pagesLeft -= pagesNum;
         for(int i=0;i<pagesNum;i++){
             int target = noffH.code.virtualAddr / PageSize + i;
             if(!allocatePage(target, 0)){
@@ -205,6 +209,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.initData.size > 0) {
         // pagesNum = noffH.initData.size/PageSize;
         pagesNum = divRoundUp(noffH.initData.size, PageSize);
+        pagesLeft -= pagesNum;
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
             int target = noffH.initData.virtualAddr / PageSize + i;
@@ -233,6 +238,7 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.readonlyData.size > 0) {
         // pagesNum = noffH.readonlyData.size /PageSize;
         pagesNum = divRoundUp(noffH.readonlyData.size, PageSize);
+        pagesLeft -= pagesNum;
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
             int target = noffH.readonlyData.virtualAddr / PageSize + i;
@@ -258,6 +264,23 @@ bool AddrSpace::Load(char *fileName) {
         }
     }
 #endif
+    cout << pagesLeft <<endl;
+    for(int i = numPages; i >= (numPages - pagesLeft); i --){
+        cout << "excuse me?" <<endl;
+        if(!allocatePage(i, 0)){
+            kernel->interrupt->setStatus(SystemMode);
+            ExceptionHandler(MemoryLimitException);
+            kernel->interrupt->setStatus(UserMode);
+        }
+        // cout << "excuse me?" <<endl;
+        // cout<< i <<" " <<pageTable[i].valid << " " << pageTable[i].readOnly <<endl;
+    }
+    cout << noffH.initData.virtualAddr << " " << noffH.uninitData.virtualAddr << " " << noffH.code.virtualAddr << " " << noffH.readonlyData.virtualAddr<<'\n';
+    cout << noffH.initData.size << " " << noffH.uninitData.size << " " << noffH.code.size << " " << noffH.readonlyData.size << '\n';
+    
+    for(int i=0;i<numPages;i++){
+        cout<< i <<" " <<pageTable[i].valid <<endl;
+    }
 
     delete executable;  // close file
     return TRUE;        // success
@@ -375,7 +398,8 @@ AddrSpace::Translate(unsigned int vaddr, unsigned int *paddr, int isReadWrite) {
         DEBUG(dbgAddr, "Illegal physical page " << pfn);
         return BusErrorException;
     }
-
+    //cout << pte->valid <<'\n';
+    
     pte->use = TRUE;  // set the use, dirty bits
 
     if (isReadWrite)
