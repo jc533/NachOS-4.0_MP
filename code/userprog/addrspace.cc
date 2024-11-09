@@ -275,12 +275,12 @@ bool AddrSpace::Load(char *fileName) {
         // cout << "excuse me?" <<endl;
         // cout<< i <<" " <<pageTable[i].valid << " " << pageTable[i].readOnly <<endl;
     }
-    cout << noffH.initData.virtualAddr << " " << noffH.uninitData.virtualAddr << " " << noffH.code.virtualAddr << " " << noffH.readonlyData.virtualAddr<<'\n';
-    cout << noffH.initData.size << " " << noffH.uninitData.size << " " << noffH.code.size << " " << noffH.readonlyData.size << '\n';
+    // cout << noffH.initData.virtualAddr << " " << noffH.uninitData.virtualAddr << " " << noffH.code.virtualAddr << " " << noffH.readonlyData.virtualAddr<<'\n';
+    // cout << noffH.initData.size << " " << noffH.uninitData.size << " " << noffH.code.size << " " << noffH.readonlyData.size << '\n';
     
-    for(int i=0;i<numPages;i++){
-        cout<< i <<" " <<pageTable[i].valid <<endl;
-    }
+    // for(int i=0;i<numPages;i++){
+    //     cout<< i <<" " <<pageTable[i].valid <<endl;
+    // }
 
     delete executable;  // close file
     return TRUE;        // success
