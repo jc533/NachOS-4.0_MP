@@ -188,7 +188,7 @@ bool AddrSpace::Load(char *fileName) {
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing code segment.");
-            DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffh.initData.size);
+            DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
             if (i * PageSize < noffH.initData.size)
                 load = PageSize;
             else
