@@ -76,7 +76,7 @@ AddrSpace::AddrSpace() {
     // zero out the entire address space
     for(int i =0;i<NumPhysPages;i++){
         bool used = 0;
-        while (!kernel->pageUsed.IsEmpty()){
+        for(int j=0;j<kernel->pageUsed.NumInList();j++){
             int tmp = kernel->pageUsed.Front();
             kernel->pageUsed.RemoveFront();
             kernel->pageUsed.Append(tmp);
@@ -116,7 +116,7 @@ AddrSpace::~AddrSpace() {
 bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
     for(int j=0;j<NumPhysPages;j++){
         bool used = 0;
-        while (!kernel->pageUsed.IsEmpty()){
+        for(int k=0;k<kernel->pageUsed.NumInList();k++){
             int tmp = kernel->pageUsed.Front();
             kernel->pageUsed.RemoveFront();
             kernel->pageUsed.Append(tmp);
