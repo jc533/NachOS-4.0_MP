@@ -143,24 +143,13 @@ bool AddrSpace::Load(char *fileName) {
     
     int load;
     int pagesNum;
-    // cout << "code" << endl;
-    // if (noffH.code.size > 0) {
-    //     DEBUG(dbgAddr, "Initializing code segment.");
-    //     DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
-    //     executable->ReadAt(
-    //         &(kernel->machine->mainMemory[noffH.code.virtualAddr]),
-    //         noffH.code.size, noffH.code.inFileAddr);
-    // }
     if (noffH.code.size > 0) {
-        cout << "is running" << endl;
         pagesNum = divRoundUp(noffH.code.size, PageSize);
         for(int i=0;i<pagesNum;i++){
             ExceptionType t = Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1);
             if ( t == NoException){
                 // kernel->pageUsed.Append(paddr);
-                // cout << "work!" <<endl;
             }else{
-                cout << "fail" << t << endl;
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing code segment.");
@@ -175,11 +164,10 @@ bool AddrSpace::Load(char *fileName) {
         }
     }
 
-    cout << "init" << endl;
     if (noffH.initData.size > 0) {
-        cout << "init is running" << endl;
-        pagesNum = noffH.initData.size/PageSize;
-        pagesNum = pagesNum == 0 ? 1: pagesNum;
+        // pagesNum = noffH.initData.size/PageSize;
+        pagesNum = divRoundUp(noffH.initData.size, PageSize);
+        // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
             if (Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
@@ -200,15 +188,14 @@ bool AddrSpace::Load(char *fileName) {
 
 #ifdef RDATA
     if (noffH.readonlyData.size > 0) {
-        cout << "read is running" <<endl;
-        pagesNum = noffH.readonlyData.size /PageSize;
-        pagesNum = pagesNum == 0 ? 1: pagesNum;
+        // pagesNum = noffH.readonlyData.size /PageSize;
+        pagesNum = divRoundUp(noffH.readonlyData.size, PageSize);
+        // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
             if (Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,0) == NoException){
                 // kernel->pageUsed.Append(paddr);
-                cout << "paddr " << paddr <<endl;
+                // cout << "paddr " << paddr <<endl;
             }else{
-                cout << "wth" <<endl;
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing read only data segment.");
@@ -217,7 +204,6 @@ bool AddrSpace::Load(char *fileName) {
                 load = PageSize;
             else{
                 load = size - i * PageSize;
-                cout << "last" <<endl;
             }
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
