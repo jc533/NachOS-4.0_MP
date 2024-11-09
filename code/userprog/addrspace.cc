@@ -167,7 +167,7 @@ bool AddrSpace::Load(char *fileName) {
             DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
-                PageSize, noffH.code.inFileAddr);
+                PageSize, noffH.code.inFileAddr+i*PageSize);
         }
     }
     // if (noffH.initData.size > 0) {
