@@ -129,6 +129,7 @@ bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
             pageTable[tg].physicalPage = j;
             pageTable[tg].valid = TRUE;
             pageTable[tg].readOnly = onlyread;
+            kernel->pageUsed.Append(j);
             return true;
         }
     }
