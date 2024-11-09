@@ -140,19 +140,6 @@ bool AddrSpace::Load(char *fileName) {
 
     // then, copy in the code and data segments into memory
     // Note: this code assumes that virtual address = physical address
-    // bool valid;
-    // for(int i=0;i<NumPhysPages;i++){
-    //     valid = TRUE;
-    //     for(int j=0;j<kernel->pageUsed.NumInList();j++){
-    //         if(i==kernel->pageUsed.Front()){
-    //             valid = FALSE;
-    //         }
-    //         int tmp =  kernel->pageUsed.Front();
-    //         kernel->pageUsed.RemoveFront();
-    //         kernel->pageUsed.Append(tmp);
-    //     }
-    //     pageTable[i].valid = valid;
-    // }
     
     int vaddr=0;
     if (noffH.code.size > 0) {
@@ -167,7 +154,7 @@ bool AddrSpace::Load(char *fileName) {
             }
             DEBUG(dbgAddr, "Initializing code segment.");
             DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
-            if (i * PageSize < noffH.code.size)
+            if ((i+1) * PageSize < noffH.code.size)
                 load = PageSize;
             else
                 load = noffH.code.size % PageSize;
@@ -189,7 +176,7 @@ bool AddrSpace::Load(char *fileName) {
             }
             DEBUG(dbgAddr, "Initializing code segment.");
             DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
-            if (i * PageSize < noffH.initData.size)
+            if ((i+1) * PageSize < noffH.initData.size)
                 load = PageSize;
             else
                 load = noffH.initData.size % PageSize;
@@ -198,21 +185,6 @@ bool AddrSpace::Load(char *fileName) {
                 load, noffH.initData.inFileAddr + i * PageSize);
         }
     }
-    // if (noffH.initData.size > 0) {
-    //     int pagesNum = noffH.initData.size /PageSize;
-    //     for(int i=0;i<pagesNum;i++){
-    //         if (Translate(noffH.initData.virtualAddr+i,&paddr,1) == NoException){
-    //             // kernel->pageUsed.Append(paddr);
-    //         }else{
-    //             return FALSE;
-    //         }
-    //         DEBUG(dbgAddr, "Initializing data segment.");
-    //         DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
-    //         executable->ReadAt(
-    //             &(kernel->machine->mainMemory[noffH.initData.virtualAddr]),
-    //             PageSize, noffH.initData.inFileAddr);
-    //     }
-    // }
 
 #ifdef RDATA
     if (noffH.readonlyData.size > 0) {
@@ -226,7 +198,7 @@ bool AddrSpace::Load(char *fileName) {
             }
             DEBUG(dbgAddr, "Initializing read only data segment.");
             DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
-            if (i * PageSize < noffH.readonlyData.size)
+            if ((i+1) * PageSize < noffH.readonlyData.size)
                 load = PageSize;
             else
                 load = noffH.readonlyData.size % PageSize;
