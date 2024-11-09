@@ -197,10 +197,10 @@ bool AddrSpace::Load(char *fileName) {
             }
             DEBUG(dbgAddr, "Initializing read only data segment.");
             DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
-            if ((i+1) * PageSize < noffH.readonlyData.size)
+            // if ((i+1) * PageSize < noffH.readonlyData.size)
                 load = PageSize;
-            else
-                load = size - i * PageSize;
+            // else
+            //     load = size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.readonlyData.inFileAddr + i * PageSize);
