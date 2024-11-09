@@ -112,20 +112,23 @@ AddrSpace::~AddrSpace() {
 //
 //	"fileName" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
-bool AddrSpace::avalPage(unsigned int tg, bool onlyread){
+bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
     for(int j=0;j<NumPhysPages;j++){
         bool used = 0;
         while (kernel->pageUsed.IsEmpty()){
             int tmp = kernel->pageUsed.Front();
             kernel->pageUsed.RemoveFront();
             kernel->pageUsed.Append(tmp);
-            if(tmp == tg){
+            if(tmp == j){
                 used = 1;
-                pageTable[tg].physicalPage = j;
-                pageTable[tg].valid = TRUE;
-                pageTable[tg].readOnly = onlyread;
-                return true;
+                break;
             }
+        }
+        if(!used){
+            pageTable[tg].physicalPage = j;
+            pageTable[tg].valid = TRUE;
+            pageTable[tg].readOnly = onlyread;
+            return true;
         }
     }
     return false;
@@ -177,7 +180,7 @@ bool AddrSpace::Load(char *fileName) {
         pagesNum = divRoundUp(noffH.code.size, PageSize);
         for(int i=0;i<pagesNum;i++){
             int target = noffH.code.virtualAddr / PageSize + i;
-            if(!avalPage(target, 0)){
+            if(!allocatePage(target, 0)){
                 kernel->interrupt->setStatus(SystemMode);
                 ExceptionHandler(MemoryLimitException);
                 kernel->interrupt->setStatus(UserMode);
@@ -204,7 +207,7 @@ bool AddrSpace::Load(char *fileName) {
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
             int target = noffH.initData.virtualAddr / PageSize + i;
-            if(!avalPage(target, 0)){
+            if(!allocatePage(target, 0)){
                 kernel->interrupt->setStatus(SystemMode);
                 ExceptionHandler(MemoryLimitException);
                 kernel->interrupt->setStatus(UserMode);
@@ -232,7 +235,7 @@ bool AddrSpace::Load(char *fileName) {
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
             int target = noffH.readonlyData.virtualAddr / PageSize + i;
-            if(!avalPage(target, 1)){
+            if(!allocatePage(target, 1)){
                 kernel->interrupt->setStatus(SystemMode);
                 ExceptionHandler(MemoryLimitException);
                 kernel->interrupt->setStatus(UserMode);
