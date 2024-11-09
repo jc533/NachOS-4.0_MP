@@ -67,14 +67,27 @@ AddrSpace::AddrSpace() {
     for (int i = 0; i < NumPhysPages; i++) {
         pageTable[i].virtualPage = i;  // for now, virt page # = phys page #
         pageTable[i].physicalPage = i;
-        pageTable[i].valid = TRUE;
+        pageTable[i].valid = FALSE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
         pageTable[i].readOnly = FALSE;
     }
 
     // zero out the entire address space
-    bzero(kernel->machine->mainMemory, MemorySize);
+    for(int i =0;i<NumPhysPages;i++){
+        bool used = 0;
+        while (kernel->pageUsed.IsEmpty()){
+            int tmp = kernel->pageUsed.Front();
+            kernel->pageUsed.RemoveFront();
+            kernel->pageUsed.Append(tmp);
+            if(tmp == i){
+                used = 1;
+                break;
+            }
+        }
+        if(!used)
+            bzero(kernel->machine->mainMemory+i*PageSize, PageSize);
+    }
 }
 
 //----------------------------------------------------------------------
@@ -146,6 +159,24 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.code.size > 0) {
         pagesNum = divRoundUp(noffH.code.size, PageSize);
         for(int i=0;i<pagesNum;i++){
+            for(int j=0;j<NumPhysPages;j++){
+                bool used = 0;
+                while (kernel->pageUsed.IsEmpty()){
+                    int tmp = kernel->pageUsed.Front();
+                    kernel->pageUsed.RemoveFront();
+                    kernel->pageUsed.Append(tmp);
+                    if(tmp == i){
+                        used = 1;
+                        pageTable[i].physicalPage = j;
+                        pageTable[i].valid = TRUE;
+                        break;
+                    }
+                }
+                if(!used){
+                    kernel->interrupt->setStatus(SystemMode);
+                    ExceptionHandler(MemoryLimitException);
+                }
+            }
             ExceptionType t = Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1);
             if ( t == NoException){
                 // kernel->pageUsed.Append(paddr);
