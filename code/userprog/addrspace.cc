@@ -157,7 +157,7 @@ bool AddrSpace::Load(char *fileName) {
             if ((i+1) * PageSize < noffH.code.size)
                 load = PageSize;
             else
-                load = noffH.code.size % PageSize;
+                load = size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.code.inFileAddr + i * PageSize);
@@ -167,7 +167,6 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.initData.size > 0) {
         int pagesNum = noffH.initData.size/PageSize;
         int load;
-        vaddr += noffH.initData.virtualAddr;
         for(int i=0;i<pagesNum;i++){
             if (Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
                 // kernel->pageUsed.Append(paddr);
@@ -179,7 +178,7 @@ bool AddrSpace::Load(char *fileName) {
             if ((i+1) * PageSize < noffH.initData.size)
                 load = PageSize;
             else
-                load = noffH.initData.size % PageSize;
+                load = size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.initData.inFileAddr + i * PageSize);
@@ -201,7 +200,7 @@ bool AddrSpace::Load(char *fileName) {
             if ((i+1) * PageSize < noffH.readonlyData.size)
                 load = PageSize;
             else
-                load = noffH.readonlyData.size % PageSize;
+                load = size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.readonlyData.inFileAddr + i * PageSize);
