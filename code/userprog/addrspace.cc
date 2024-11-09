@@ -63,6 +63,7 @@ SwapHeader(NoffHeader *noffH) {
 //----------------------------------------------------------------------
 
 AddrSpace::AddrSpace() {
+    cout << "hello" << endl;
     pageTable = new TranslationEntry[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++) {
         pageTable[i].virtualPage = i;  // for now, virt page # = phys page #
@@ -72,11 +73,11 @@ AddrSpace::AddrSpace() {
         pageTable[i].dirty = FALSE;
         pageTable[i].readOnly = FALSE;
     }
-
+    cout << "hello2" << endl;
     // zero out the entire address space
     for(int i =0;i<NumPhysPages;i++){
         bool used = 0;
-        while (kernel->pageUsed.IsEmpty()){
+        while (!kernel->pageUsed.IsEmpty()){
             int tmp = kernel->pageUsed.Front();
             kernel->pageUsed.RemoveFront();
             kernel->pageUsed.Append(tmp);
@@ -85,8 +86,11 @@ AddrSpace::AddrSpace() {
                 break;
             }
         }
-        if(!used)
+        cout << "hello " << i <<endl;
+        if(!used){
+            cout << "he " << i << endl;
             bzero(&(kernel->machine->mainMemory[i*PageSize]), PageSize);
+        }
     }
 }
 
@@ -97,7 +101,7 @@ AddrSpace::AddrSpace() {
 
 AddrSpace::~AddrSpace() {
     delete pageTable;
-    while (kernel->pageUsed.IsEmpty()){
+    while (!kernel->pageUsed.IsEmpty()){
         kernel->pageUsed.RemoveFront();
     }
     
@@ -115,7 +119,7 @@ AddrSpace::~AddrSpace() {
 bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
     for(int j=0;j<NumPhysPages;j++){
         bool used = 0;
-        while (kernel->pageUsed.IsEmpty()){
+        while (!kernel->pageUsed.IsEmpty()){
             int tmp = kernel->pageUsed.Front();
             kernel->pageUsed.RemoveFront();
             kernel->pageUsed.Append(tmp);
