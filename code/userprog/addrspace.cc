@@ -73,7 +73,6 @@ AddrSpace::AddrSpace() {
         pageTable[i].dirty = FALSE;
         pageTable[i].readOnly = FALSE;
     }
-    cout << "hello2" << endl;
     // zero out the entire address space
     for(int i =0;i<NumPhysPages;i++){
         bool used = 0;
@@ -86,9 +85,7 @@ AddrSpace::AddrSpace() {
                 break;
             }
         }
-        cout << "hello " << i <<endl;
         if(!used){
-            cout << "he " << i << endl;
             bzero(&(kernel->machine->mainMemory[i*PageSize]), PageSize);
         }
     }
