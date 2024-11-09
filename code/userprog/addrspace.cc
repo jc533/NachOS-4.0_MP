@@ -231,7 +231,7 @@ bool AddrSpace::Load(char *fileName) {
             else
                 load = noffH.readonlyData.size % PageSize;
             executable->ReadAt(
-                &(kernel->machine->mainMemory[noffH.readonlyData.virtualAddr]),
+                &(kernel->machine->mainMemory[paddr]),
                 load, noffH.readonlyData.inFileAddr + i * PageSize);
         }
     }
