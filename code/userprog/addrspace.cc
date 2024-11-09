@@ -86,7 +86,7 @@ AddrSpace::AddrSpace() {
             }
         }
         if(!used)
-            bzero(kernel->machine->mainMemory+i*PageSize, PageSize);
+            bzero(&(kernel->machine->mainMemory[i*PageSize]), PageSize);
     }
 }
 
