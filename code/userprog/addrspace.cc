@@ -112,7 +112,24 @@ AddrSpace::~AddrSpace() {
 //
 //	"fileName" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
-
+bool AddrSpace::avalPage(unsigned int tg, bool onlyread){
+    for(int j=0;j<NumPhysPages;j++){
+        bool used = 0;
+        while (kernel->pageUsed.IsEmpty()){
+            int tmp = kernel->pageUsed.Front();
+            kernel->pageUsed.RemoveFront();
+            kernel->pageUsed.Append(tmp);
+            if(tmp == tg){
+                used = 1;
+                pageTable[tg].physicalPage = j;
+                pageTable[tg].valid = TRUE;
+                pageTable[tg].readOnly = onlyread;
+                return true;
+            }
+        }
+    }
+    return false;
+}
 bool AddrSpace::Load(char *fileName) {
     OpenFile *executable = kernel->fileSystem->Open(fileName);
     NoffHeader noffH;
@@ -159,28 +176,14 @@ bool AddrSpace::Load(char *fileName) {
     if (noffH.code.size > 0) {
         pagesNum = divRoundUp(noffH.code.size, PageSize);
         for(int i=0;i<pagesNum;i++){
-            for(int j=0;j<NumPhysPages;j++){
-                bool used = 0;
-                while (kernel->pageUsed.IsEmpty()){
-                    int tmp = kernel->pageUsed.Front();
-                    kernel->pageUsed.RemoveFront();
-                    kernel->pageUsed.Append(tmp);
-                    if(tmp == i){
-                        used = 1;
-                        pageTable[i].physicalPage = j;
-                        pageTable[i].valid = TRUE;
-                        break;
-                    }
-                }
-                if(!used){
-                    kernel->interrupt->setStatus(SystemMode);
-                    ExceptionHandler(MemoryLimitException);
-                }
+            int target = noffH.code.virtualAddr / PageSize + i;
+            if(!avalPage(target, 0)){
+                kernel->interrupt->setStatus(SystemMode);
+                ExceptionHandler(MemoryLimitException);
+                kernel->interrupt->setStatus(UserMode);
             }
             ExceptionType t = Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1);
-            if ( t == NoException){
-                // kernel->pageUsed.Append(paddr);
-            }else{
+            if ( t != NoException){
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing code segment.");
@@ -200,9 +203,14 @@ bool AddrSpace::Load(char *fileName) {
         pagesNum = divRoundUp(noffH.initData.size, PageSize);
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1) == NoException){
-                // kernel->pageUsed.Append(paddr);
-            }else{
+            int target = noffH.initData.virtualAddr / PageSize + i;
+            if(!avalPage(target, 0)){
+                kernel->interrupt->setStatus(SystemMode);
+                ExceptionHandler(MemoryLimitException);
+                kernel->interrupt->setStatus(UserMode);
+            }
+            ExceptionType t = Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1);
+            if ( t != NoException){
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing code segment.");
@@ -223,10 +231,14 @@ bool AddrSpace::Load(char *fileName) {
         pagesNum = divRoundUp(noffH.readonlyData.size, PageSize);
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
         for(int i=0;i<pagesNum;i++){
-            if (Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,0) == NoException){
-                // kernel->pageUsed.Append(paddr);
-                // cout << "paddr " << paddr <<endl;
-            }else{
+            int target = noffH.readonlyData.virtualAddr / PageSize + i;
+            if(!avalPage(target, 1)){
+                kernel->interrupt->setStatus(SystemMode);
+                ExceptionHandler(MemoryLimitException);
+                kernel->interrupt->setStatus(UserMode);
+            }
+            ExceptionType t = Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,1);
+            if ( t != NoException){
                 return FALSE;
             }
             DEBUG(dbgAddr, "Initializing read only data segment.");
