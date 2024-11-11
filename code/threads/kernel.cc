@@ -116,10 +116,6 @@ void Kernel::Initialize() {
     postOfficeIn = new PostOfficeInput(10);
     postOfficeOut = new PostOfficeOutput(reliability);
     
-    // for(int i = 0; i < NumPhysPages; i++){
-    //     kernel->pageUsed.Append(i);
-    // }
-    
     interrupt->Enable();
 }
 

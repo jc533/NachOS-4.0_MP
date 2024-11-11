@@ -18,7 +18,7 @@
 #include "machine.h"
 
 #define UserStackSize 1024  // increase this as necessary!
-// typedef TranslationEntry *PageTable;
+
 class AddrSpace {
    public:
     AddrSpace();   // Create an address space.
