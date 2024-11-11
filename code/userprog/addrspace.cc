@@ -63,31 +63,35 @@ SwapHeader(NoffHeader *noffH) {
 //----------------------------------------------------------------------
 
 AddrSpace::AddrSpace() {
-    pageTable = new TranslationEntry[NumPhysPages];
-    for (int i = 0; i < NumPhysPages; i++) {
-        pageTable[i].virtualPage = i;  // for now, virt page # = phys page #
-        pageTable[i].physicalPage = i;
-        pageTable[i].valid = FALSE;
-        pageTable[i].use = FALSE;
-        pageTable[i].dirty = FALSE;
-        pageTable[i].readOnly = FALSE;
-    }
-    // zero out the entire address space
-    for(int i =0;i<NumPhysPages;i++){
-        bool used = 0;
-        for(int j=0;j<kernel->pageUsed.NumInList();j++){
-            int tmp = kernel->pageUsed.Front();
-            kernel->pageUsed.RemoveFront();
-            kernel->pageUsed.Append(tmp);
-            if(tmp == i){
-                used = 1;
-                break;
-            }
-        }
-        if(!used){
-            bzero(&(kernel->machine->mainMemory[i*PageSize]), PageSize);
-        }
-    }
+    pageTable = NULL;
+    
+    // pageTable = new TranslationEntry[NumPhysPages];
+    // cout << "r u ded\n";
+    
+    // for (int i = 0; i < NumPhysPages; i++) {
+    //     pageTable[i].virtualPage = i;  // for now, virt page # = phys page #
+    //     pageTable[i].physicalPage = i;
+    //     pageTable[i].valid = FALSE;
+    //     pageTable[i].use = FALSE;
+    //     pageTable[i].dirty = FALSE;
+    //     pageTable[i].readOnly = FALSE;
+    // }
+    // // zero out the entire address space
+    // for(int i =0;i<NumPhysPages;i++){
+    //     bool used = 0;
+    //     for(int j=0;j<kernel->pageUsed.NumInList();j++){
+    //         int tmp = kernel->pageUsed.Front();
+    //         kernel->pageUsed.RemoveFront();
+    //         kernel->pageUsed.Append(tmp);
+    //         if(tmp == i){
+    //             used = 1;
+    //             break;
+    //         }
+    //     }
+    //     if(!used){
+    //         bzero(&(kernel->machine->mainMemory[i*PageSize]), PageSize);
+    //     }
+    // }
 }
 
 //----------------------------------------------------------------------
@@ -96,13 +100,13 @@ AddrSpace::AddrSpace() {
 //----------------------------------------------------------------------
 
 AddrSpace::~AddrSpace() {
-    for(int i = 0; i < NumPhysPages; i++){
-        pageTable[i].valid = FALSE;
+    // cout << "are u broken\n" ;
+    if(!pageTable)
+        return;
+    for(int i = 0; i < numPages; i++){
+        kernel->pageUsed.Append(pageTable[i].physicalPage);
     }
-    delete pageTable;
-    while (!kernel->pageUsed.IsEmpty()){
-        kernel->pageUsed.RemoveFront();
-    }
+    delete [] pageTable;
 }
 
 //----------------------------------------------------------------------
@@ -114,27 +118,44 @@ AddrSpace::~AddrSpace() {
 //
 //	"fileName" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
-bool AddrSpace::allocatePage(unsigned int tg, bool onlyread){
-    for(int j=0;j<NumPhysPages;j++){
-        bool used = 0;
-        for(int k=0;k<kernel->pageUsed.NumInList();k++){
-            int tmp = kernel->pageUsed.RemoveFront();
-            kernel->pageUsed.Append(tmp);
-            if(tmp == j){
-                used = 1;
-                break;
-            }
-        }
-        if(!used){
-            pageTable[tg].virtualPage = tg;
-            pageTable[tg].physicalPage = j;
-            pageTable[tg].valid = TRUE;
-            pageTable[tg].readOnly = onlyread;
-            kernel->pageUsed.Append(j);
-            return true;
-        }
+bool AddrSpace::allocatePage(unsigned int tg){
+    if(kernel->pageUsed.NumInList() < tg){
+        return false;
     }
-    return false;
+    pageTable = new TranslationEntry[tg];
+    // cout << tg << '\n';
+    for(int i = 0; i < tg; i++){
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = kernel->pageUsed.RemoveFront();
+        pageTable[i].dirty = FALSE;
+        pageTable[i].use = FALSE;
+        pageTable[i].readOnly = FALSE;
+        pageTable[i].valid = TRUE;
+        bzero(kernel->machine->mainMemory + pageTable[i].physicalPage * PageSize, PageSize);
+        // cout << pageTable[i].physicalPage << " " << pageTable[i].virtualPage << '\n';
+    }
+    // cout << kernel->pageUsed.NumInList() << '\n';
+    return true;
+    // for(int j=0;j<NumPhysPages;j++){
+    //     bool used = 0;
+    //     for(int k=0;k<kernel->pageUsed.NumInList();k++){
+    //         int tmp = kernel->pageUsed.RemoveFront();
+    //         kernel->pageUsed.Append(tmp);
+    //         if(tmp == j){
+    //             used = 1;
+    //             break;
+    //         }
+    //     }
+    //     if(!used){
+    //         pageTable[tg].virtualPage = tg;
+    //         pageTable[tg].physicalPage = j;
+    //         pageTable[tg].valid = TRUE;
+    //         pageTable[tg].readOnly = onlyread;
+    //         kernel->pageUsed.Append(j);
+    //         return true;
+    //     }
+    // }
+    // return false;
 }
 bool AddrSpace::Load(char *fileName) {
     OpenFile *executable = kernel->fileSystem->Open(fileName);
@@ -178,28 +199,41 @@ bool AddrSpace::Load(char *fileName) {
     // Note: this code assumes that virtual address = physical address
     
     int load;
-    int pagesNum;
-    int pagesLeft = numPages;
+    // int pagesNum;
+
+    // int target = noffH.code.virtualAddr / PageSize + i;
+    
+    if(!allocatePage(numPages)){
+        kernel->interrupt->setStatus(SystemMode);
+        ExceptionHandler(MemoryLimitException);
+        kernel->interrupt->setStatus(UserMode);
+    }
+
+    // ExceptionType t = Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1);
+    // if ( t != NoException){
+    //     return FALSE;
+    // }
+    // int pagesLeft = numPages;
     if (noffH.code.size > 0) {
-        pagesNum = divRoundUp(noffH.code.size, PageSize);
-        pagesLeft -= pagesNum;
-        for(int i=0;i<pagesNum;i++){
-            int target = noffH.code.virtualAddr / PageSize + i;
-            if(!allocatePage(target, 0)){
-                kernel->interrupt->setStatus(SystemMode);
-                ExceptionHandler(MemoryLimitException);
-                kernel->interrupt->setStatus(UserMode);
-            }
+        // pagesNum = divRoundUp(noffH.code.size, PageSize);
+        // pagesLeft -= pagesNum;
+        DEBUG(dbgAddr, "Initializing code segment.");
+        DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
+        for(int i=0; i * PageSize < noffH.code.size;i++){
+            // int target = noffH.code.virtualAddr / PageSize + i;
+            // if(!allocatePage(target, 0)){
+            //     kernel->interrupt->setStatus(SystemMode);
+            //     ExceptionHandler(MemoryLimitException);
+            //     kernel->interrupt->setStatus(UserMode);
+            // }
             ExceptionType t = Translate(noffH.code.virtualAddr+i*PageSize,&paddr,1);
             if ( t != NoException){
                 return FALSE;
             }
-            DEBUG(dbgAddr, "Initializing code segment.");
-            DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
             if ((i+1) * PageSize < noffH.code.size)
                 load = PageSize;
             else
-                load = size - i * PageSize;
+                load = noffH.code.size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.code.inFileAddr + i * PageSize);
@@ -208,26 +242,26 @@ bool AddrSpace::Load(char *fileName) {
 
     if (noffH.initData.size > 0) {
         // pagesNum = noffH.initData.size/PageSize;
-        pagesNum = divRoundUp(noffH.initData.size, PageSize);
-        pagesLeft -= pagesNum;
+        // pagesNum = divRoundUp(noffH.initData.size, PageSize);
+        // pagesLeft -= pagesNum;
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
-        for(int i=0;i<pagesNum;i++){
-            int target = noffH.initData.virtualAddr / PageSize + i;
-            if(!allocatePage(target, 0)){
-                kernel->interrupt->setStatus(SystemMode);
-                ExceptionHandler(MemoryLimitException);
-                kernel->interrupt->setStatus(UserMode);
-            }
+        DEBUG(dbgAddr, "Initializing initData segment.");
+        DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
+        for(int i=0;i * PageSize < noffH.initData.size; i++){
+            // int target = noffH.initData.virtualAddr / PageSize + i;
+            // if(!allocatePage(target, 0)){
+            //     kernel->interrupt->setStatus(SystemMode);
+            //     ExceptionHandler(MemoryLimitException);
+            //     kernel->interrupt->setStatus(UserMode);
+            // }
             ExceptionType t = Translate(noffH.initData.virtualAddr+i*PageSize,&paddr,1);
             if ( t != NoException){
                 return FALSE;
             }
-            DEBUG(dbgAddr, "Initializing code segment.");
-            DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
             if ((i+1) * PageSize < noffH.initData.size)
                 load = PageSize;
             else
-                load = size - i * PageSize;
+                load = noffH.initData.size - i * PageSize;
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
                 load, noffH.initData.inFileAddr + i * PageSize);
@@ -236,27 +270,30 @@ bool AddrSpace::Load(char *fileName) {
 
 #ifdef RDATA
     if (noffH.readonlyData.size > 0) {
+        DEBUG(dbgAddr, "Initializing read only data segment.");
+        DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
         // pagesNum = noffH.readonlyData.size /PageSize;
-        pagesNum = divRoundUp(noffH.readonlyData.size, PageSize);
-        pagesLeft -= pagesNum;
+        // pagesNum = divRoundUp(noffH.readonlyData.size, PageSize);
+        // pagesLeft -= pagesNum;
         // pagesNum = pagesNum == 0 ? 1: pagesNum;
-        for(int i=0;i<pagesNum;i++){
-            int target = noffH.readonlyData.virtualAddr / PageSize + i;
-            if(!allocatePage(target, 1)){
-                kernel->interrupt->setStatus(SystemMode);
-                ExceptionHandler(MemoryLimitException);
-                kernel->interrupt->setStatus(UserMode);
-            }
-            ExceptionType t = Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,1);
+        for(int i = 0, j = divRoundUp(noffH.readonlyData.size, PageSize); i < j; i++){
+            pageTable[noffH.readonlyData.virtualAddr / PageSize + i].readOnly = TRUE;
+        }
+        for(int i = 0; i * PageSize < noffH.readonlyData.size;i++){
+            // int target = noffH.readonlyData.virtualAddr / PageSize + i;
+            // if(!allocatePage(target, 1)){
+            //     kernel->interrupt->setStatus(SystemMode);
+            //     ExceptionHandler(MemoryLimitException);
+            //     kernel->interrupt->setStatus(UserMode);
+            // }
+            ExceptionType t = Translate(noffH.readonlyData.virtualAddr+i*PageSize,&paddr,0);
             if ( t != NoException){
                 return FALSE;
             }
-            DEBUG(dbgAddr, "Initializing read only data segment.");
-            DEBUG(dbgAddr, noffH.readonlyData.virtualAddr << ", " << noffH.readonlyData.size);
             if ((i+1) * PageSize < noffH.readonlyData.size)
                 load = PageSize;
             else{
-                load = size - i * PageSize;
+                load = noffH.readonlyData.size - i * PageSize;
             }
             executable->ReadAt(
                 &(kernel->machine->mainMemory[paddr]),
@@ -264,18 +301,18 @@ bool AddrSpace::Load(char *fileName) {
         }
     }
 #endif
-    cout << pagesLeft <<endl;
-    for(int i = numPages; i >= (numPages - pagesLeft); i --){
-        cout << "excuse me?" <<endl;
-        if(!allocatePage(i, 0)){
-            kernel->interrupt->setStatus(SystemMode);
-            ExceptionHandler(MemoryLimitException);
-            kernel->interrupt->setStatus(UserMode);
-        }
-        // cout << "excuse me?" <<endl;
-        // cout<< i <<" " <<pageTable[i].valid << " " << pageTable[i].readOnly <<endl;
-    }
-    // cout << noffH.initData.virtualAddr << " " << noffH.uninitData.virtualAddr << " " << noffH.code.virtualAddr << " " << noffH.readonlyData.virtualAddr<<'\n';
+    // cout << pagesLeft <<endl;
+    // for(int i = numPages; i >= (numPages - pagesLeft); i --){
+    //     cout << "excuse me?" <<endl;
+    //     if(!allocatePage(i, 0)){
+    //         kernel->interrupt->setStatus(SystemMode);
+    //         ExceptionHandler(MemoryLimitException);
+    //         kernel->interrupt->setStatus(UserMode);
+    //     }
+    //     // cout << "excuse me?" <<endl;
+    //     // cout<< i <<" " <<pageTable[i].valid << " " << pageTable[i].readOnly <<endl;
+    // }
+    // // cout << noffH.initData.virtualAddr << " " << noffH.uninitData.virtualAddr << " " << noffH.code.virtualAddr << " " << noffH.readonlyData.virtualAddr<<'\n';
     // cout << noffH.initData.size << " " << noffH.uninitData.size << " " << noffH.code.size << " " << noffH.readonlyData.size << '\n';
     
     // for(int i=0;i<numPages;i++){

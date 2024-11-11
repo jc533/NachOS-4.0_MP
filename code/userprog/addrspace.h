@@ -18,7 +18,7 @@
 #include "machine.h"
 
 #define UserStackSize 1024  // increase this as necessary!
-
+// typedef TranslationEntry *PageTable;
 class AddrSpace {
    public:
     AddrSpace();   // Create an address space.
@@ -31,7 +31,7 @@ class AddrSpace {
     void Execute(char *fileName);  // Run a program
                                    // assumes the program has already
                                    // been loaded
-   bool allocatePage(unsigned int tg, bool onlyread);
+    bool allocatePage(unsigned int tg);
     void SaveState();     // Save/restore address space-specific
     void RestoreState();  // info on a context switch
 
@@ -39,7 +39,7 @@ class AddrSpace {
     // to physical address _paddr_. _mode_
     // is 0 for Read, 1 for Write.
     ExceptionType Translate(unsigned int vaddr, unsigned int *paddr, int mode);
-
+    
    private:
     TranslationEntry *pageTable;  // Assume linear page table translation
                                   // for now!

@@ -72,7 +72,7 @@ class Kernel {
     
     int hostName;  // machine identifier
     List<int> pageUsed;
-
+    
    private:
     Thread *t[10];
     char *execfile[10];
