@@ -49,7 +49,11 @@ Kernel::Kernel(int argc, char **argv) {
         } else if (strcmp(argv[i], "-e") == 0) {
             execfile[++execfileNum] = argv[++i];
             cout << execfile[execfileNum] << "\n";
-        } else if (strcmp(argv[i], "-ee") == 0) {
+        }else if(strcmp(argv[i], "-ep") == 0){
+            execfile[execfileNum] = argv[++i];
+            cout << execfile[execfileNum] << "\n";
+            file_priority[++execfileNum] = atoi(argv[++i]);
+        }else if (strcmp(argv[i], "-ee") == 0) {
             // Added by @dasbd72
             // To end the program after all the threads are done
             execExit = TRUE;
@@ -254,14 +258,14 @@ void ForkExecute(Thread *t) {
 
 void Kernel::ExecAll() {
     for (int i = 1; i <= execfileNum; i++) {
-        int a = Exec(execfile[i]);
+        int a = Exec(execfile[i],file_priority[i]);
     }
     currentThread->Finish();
     // Kernel::Exec();
 }
 
-int Kernel::Exec(char *name) {
-    t[threadNum] = new Thread(name, threadNum);
+int Kernel::Exec(char *name,int p) {
+    t[threadNum] = new Thread(name, threadNum, p);
     t[threadNum]->setIsExec();
     t[threadNum]->space = new AddrSpace();
     t[threadNum]->Fork((VoidFunctionPtr)&ForkExecute, (void *)t[threadNum]);

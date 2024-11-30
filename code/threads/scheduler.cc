@@ -42,6 +42,9 @@ Scheduler::Scheduler() {
 
 Scheduler::~Scheduler() {
     delete readyList;
+    delete L1;
+    delete L2;
+    delete L3;
 }
 
 //----------------------------------------------------------------------
@@ -57,7 +60,14 @@ void Scheduler::ReadyToRun(Thread *thread) {
     DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
     // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
-    readyList->Append(thread);
+    // readyList->Append(thread);
+    if(thread->priority <= 49){
+        L3->Append(thread); // round rodbin?
+    }else if(thread->priority <= 99){
+        L2->Append(thread);//done nonpreemptive
+    }else{
+        L1->Append(thread);// preemptive how?
+    }
 }
 
 //----------------------------------------------------------------------
@@ -72,11 +82,27 @@ Thread *
 Scheduler::FindNextToRun() {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
 
-    if (readyList->IsEmpty()) {
+    // if (readyList->IsEmpty()) {
+    //     return NULL;
+    // } else {
+    //     return readyList->RemoveFront();
+    // }
+    bool L1_empty = L1->IsEmpty();
+    bool L2_empty = L2->IsEmpty();
+    bool L3_empty = L3->IsEmpty();
+
+    if(L1_empty && L2_empty && L3_empty){
         return NULL;
-    } else {
-        return readyList->RemoveFront();
+    }else{
+        if(!L1_empty){
+            return L1->RemoveFront();
+        }else if(!L2_empty){
+            return L2->RemoveFront();
+        }else{
+            return L3->RemoveFront();
+        }
     }
+
 }
 
 //----------------------------------------------------------------------
