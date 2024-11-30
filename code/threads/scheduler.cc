@@ -32,6 +32,9 @@
 
 Scheduler::Scheduler() {
     readyList = new List<Thread *>;
+    L1 = new List<Thread *>;
+    L2 = new List<Thread *>;
+    L3 = new List<Thread *>;
     toBeDestroyed = NULL;
 }
 

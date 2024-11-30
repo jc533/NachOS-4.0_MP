@@ -51,7 +51,6 @@ Kernel::Kernel(int argc, char **argv) {
             cout << execfile[execfileNum] << "\n";
         }else if(strcmp(argv[i], "-ep") == 0){
             execfile[execfileNum] = argv[++i];
-            cout << execfile[execfileNum] << "\n";
             file_priority[++execfileNum] = atoi(argv[++i]);
         }else if (strcmp(argv[i], "-ee") == 0) {
             // Added by @dasbd72
