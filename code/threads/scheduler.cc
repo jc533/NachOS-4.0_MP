@@ -95,14 +95,23 @@ Scheduler::FindNextToRun() {
     bool L2_empty = L2->IsEmpty();
     bool L3_empty = L3->IsEmpty();
 
+    int type = 0;
+    if(kernel->currentThread->priority<50){
+        type = 3;
+    }else if (kernel->currentThread->priority<100){
+        type = 2;
+    }else{
+        type = 1;
+    }
+
     if(L1_empty && L2_empty && L3_empty){
         return NULL;
     }else{
         if(!L1_empty){
             return L1->RemoveFront();
-        }else if(!L2_empty){
+        }else if(!L2_empty && type>2){
             return L2->RemoveFront();
-        }else{
+        }else if(type == 3){
             return L3->RemoveFront();
         }
     }
