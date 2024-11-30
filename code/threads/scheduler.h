@@ -33,7 +33,7 @@ class Scheduler {
     void Print();               // Print contents of ready list
 
     // SelfTest for scheduler is implemented in class Thread
-    int approx_burst_t = 0; // t_i
+    int approx_burst_t; // t_i
 
    private:
     List<Thread*>* readyList;  // queue of threads that are ready to run,
