@@ -31,7 +31,7 @@
 //----------------------------------------------------------------------
 
 Scheduler::Scheduler() {
-    readyList = new List<Thread *>;
+    // readyList = new List<Thread *>;
     L1 = new List<Thread *>;
     L2 = new List<Thread *>;
     L3 = new List<Thread *>;
@@ -44,7 +44,7 @@ Scheduler::Scheduler() {
 //----------------------------------------------------------------------
 
 Scheduler::~Scheduler() {
-    delete readyList;
+    // delete readyList;s
     delete L1;
     delete L2;
     delete L3;
@@ -194,5 +194,8 @@ void Scheduler::CheckToBeDestroyed() {
 //----------------------------------------------------------------------
 void Scheduler::Print() {
     cout << "Ready list contents:\n";
-    readyList->Apply(ThreadPrint);
+    // readyList->Apply(ThreadPrint);
+    L1->Apply(ThreadPrint);
+    L2->Apply(ThreadPrint);
+    L3->Apply(ThreadPrint);
 }
