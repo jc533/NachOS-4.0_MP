@@ -44,7 +44,7 @@ Scheduler::Scheduler() {
 //----------------------------------------------------------------------
 
 Scheduler::~Scheduler() {
-    // delete readyList;s
+    // delete readyList;
     delete L1;
     delete L2;
     delete L3;
