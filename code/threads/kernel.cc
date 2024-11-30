@@ -53,8 +53,8 @@ Kernel::Kernel(int argc, char **argv) {
             execfile[++execfileNum] = argv[++i];
             // cout << execfile[execfileNum] << "\n";
             // cout << argv[i] << " " << argv[i++] << endl;
-            file_priority[execfileNum] = atoi(argv[i++]);
-            // cout << file_priority[execfileNum-1] << "\n";
+            file_priority[execfileNum] = atoi(argv[++i]);
+            // cout << file_priority[execfileNum] << "\n";
 
         }else if (strcmp(argv[i], "-ee") == 0) {
             // Added by @dasbd72
@@ -110,6 +110,7 @@ void Kernel::Initialize() {
     stats = new Statistics();        // collect statistics
     interrupt = new Interrupt;       // start up interrupt handling
     scheduler = new Scheduler();     // initialize the ready queue
+    
     alarm = new Alarm(randomSlice);  // start up time slicing
     machine = new Machine(debugUserProg);
     synchConsoleIn = new SynchConsoleInput(consoleIn);     // input from stdin
@@ -270,6 +271,7 @@ void Kernel::ExecAll() {
 int Kernel::Exec(char *name,int p) {
     t[threadNum] = new Thread(name, threadNum);
     t[threadNum]->priority = p;
+    cout << "priority " <<t[threadNum]->priority <<endl;
     t[threadNum]->setIsExec();
     t[threadNum]->space = new AddrSpace();
     t[threadNum]->Fork((VoidFunctionPtr)&ForkExecute, (void *)t[threadNum]);
