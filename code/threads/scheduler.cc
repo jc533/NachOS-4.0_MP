@@ -199,3 +199,33 @@ void Scheduler::Print() {
     L2->Apply(ThreadPrint);
     L3->Apply(ThreadPrint);
 }
+
+
+void Scheduler::Aging(){
+    for(int i=0;i<L3->NumInList();i++){
+        int waitTick = kernel->stats->totalTicks - L3->Front()->enterTick;
+        if(waitTick>1500){
+            L3->Front()->priority += 10;
+            L3->Front()->enterTick = kernel->stats->totalTicks;
+            if(L3->Front()->priority > 49){
+                L2->Append(L3->RemoveFront());
+            }else{
+                L3->Append(L3->RemoveFront());
+            }
+        } 
+    }
+    for(int i=0;i<L2->NumInList();i++){
+        int waitTick = kernel->stats->totalTicks - L2->Front()->enterTick;
+        if(waitTick>1500){
+            L2->Front()->priority += 10;
+            L2->Front()->enterTick = kernel->stats->totalTicks;
+            if(L2->Front()->priority > 99){
+                L1->Append(L2->RemoveFront());
+            }else{
+                L2->Append(L2->RemoveFront());
+            }
+        } 
+    }
+    // don't know L1 need to aging or not
+    
+}

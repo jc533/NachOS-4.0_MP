@@ -169,6 +169,7 @@ void Interrupt::OneTick() {
         kernel->currentThread->Yield();
         status = oldStatus;
     }
+    kernel->scheduler->Aging();
 }
 
 //----------------------------------------------------------------------
