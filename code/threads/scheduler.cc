@@ -64,6 +64,7 @@ void Scheduler::ReadyToRun(Thread *thread) {
     // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
     // readyList->Append(thread);
+    thread->enterTick = kernel->stats->totalTicks;
     if(thread->priority <= 49){
         L3->Append(thread); // round rodbin?
     }else if(thread->priority <= 99){
