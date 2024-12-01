@@ -114,6 +114,10 @@ Scheduler::FindNextToRun() {
             for(int i=0;i<L1->NumInList();i++){
                 if(L1->Front()->burstTime < minSJF->burstTime){
                     minSJF = L1->Front();
+                }else if(L1->Front()->burstTime == minSJF->burstTime){
+                    if(L1->Front()->getID()<largestPriority->getID()){
+                        largestPriority = L1->Front();
+                    }
                 }
                 L1->Append(L1->RemoveFront());
             }
