@@ -33,14 +33,18 @@ class Scheduler {
     void Print();               // Print contents of ready list
     void Aging();
     // SelfTest for scheduler is implemented in class Thread
+     static int L1Compare(Thread* x, Thread* y);
+     static int L2Compare(Thread* x, Thread* y);
     int approx_burst_t; // t_i
 
+
+    SortedList<Thread*>* L1;
+    SortedList<Thread*>* L2;
+    List<Thread*>* L3;
    private:
     List<Thread*>* readyList;  // queue of threads that are ready to run,
                                // but not running
-    List<Thread*>* L1;
-    List<Thread*>* L2;
-    List<Thread*>* L3;
+    List<Thread*>* watingList;
     
     Thread* toBeDestroyed;     // finishing thread to be destroyed
                                // by the next thread that runs

@@ -41,6 +41,7 @@ Thread::Thread(char *threadName, int threadID) {
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    burstTime = 0;// t_0 = 0
     for (int i = 0; i < MachineStateSize; i++) {
         machineState[i] = NULL;  // not strictly necessary, since
                                  // new thread ignores contents
@@ -67,6 +68,18 @@ Thread::~Thread() {
     if (stack != NULL)
         DeallocBoundedArray((char *)stack, StackSize * sizeof(int));
 }
+
+void Thread::updateBurst(){
+    double NewBurstTime = 0.5*T+0.5*burstTime;
+    T = 0;
+    DEBUG(dbgScheduler,"[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread ["<< this->getID() <<"] update approximate burst time, from: ["<<burstTime<<"], add ["<<T<<"], to ["<<NewBurstTime<<"]");
+    burstTime = NewBurstTime;
+}
+void Thread::updateTick(){
+    T += kernel->stats->totalTicks - enterTick;
+    enterTick = kernel->stats->totalTicks;
+}
+
 
 //----------------------------------------------------------------------
 // Thread::Fork
@@ -205,6 +218,7 @@ void Thread::Yield() {
 
     DEBUG(dbgThread, "Yielding thread: " << name);
 
+    kernel->currentThread->updateTick();
     nextThread = kernel->scheduler->FindNextToRun();
     if (nextThread != NULL) {
         kernel->scheduler->ReadyToRun(this);
@@ -243,6 +257,10 @@ void Thread::Sleep(bool finishing) {
     DEBUG(dbgTraCode, "In Thread::Sleep, Sleeping thread: " << name << ", " << kernel->stats->totalTicks);
 
     status = BLOCKED;
+    if(!finishing){// running -> waiting if not finish
+        kernel->currentThread->updateTick();
+        kernel->currentThread->updateBurst();
+    }
     // cout << "debug Thread::Sleep " << name << "wait for Idle\n";
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL) {
         kernel->interrupt->Idle();  // no one to run, wait for an interrupt

@@ -89,7 +89,6 @@ class Thread {
                                             // is called
 
     // basic thread operations
-
     void Fork(VoidFunctionPtr func, void *arg);
     // Make thread run (*func)(arg)
     void Yield();                // Relinquish the CPU if any
@@ -103,6 +102,9 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     ThreadStatus getStatus() { return (status); }
     char *getName() { return (name); }
+
+    void updateBurst(){}
+    void updateTick(){}
 
     int getID() { return (ID); }
     void setIsExec() { this->isExec = true; }
@@ -135,7 +137,9 @@ class Thread {
     void RestoreUserState();  // restore user-level register state
     int priority;
     int enterTick;
-    int burstTime;
+    int waitTick;
+    int T;
+    double burstTime;
     AddrSpace *space;  // User code this thread is running.
 };
 

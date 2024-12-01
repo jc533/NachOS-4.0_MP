@@ -46,8 +46,44 @@ Alarm::Alarm(bool doRandom) {
 void Alarm::CallBack() {
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
-    if (status != IdleMode) {
+
+    int type;
+    if(kernel->currentThread->priority<50){
+        type = 3;
+    }else if (kernel->currentThread->priority<100){
+        type = 2;
+    }else{
+        type = 1;
+    }
+    // yield for preemptive
+    if(status == RUNNING){
+        kernel->currentThread->T = kernel->stats->totalTicks - kernel->currentThread->enterTick;
+    }
+    bool yield = FALSE;
+    Thread* cur = kernel->currentThread;
+    if(!kernel->scheduler->L1->IsEmpty()){
+        if(type==1){
+            Thread* minSJF = kernel->scheduler->L1->Front();
+            double L1Remain = minSJF->burstTime-minSJF->T;
+            double curRemain = cur->burstTime - cur->T;
+            if(L1Remain<curRemain){
+                yield = TRUE;
+            }else if(L1Remain==curRemain && minSJF->getID()<cur->getID()){
+                yield = TRUE;
+            }
+        }else if(type>=2){
+            yield = TRUE;
+        }
+    else if(!kernel->scheduler->L2->IsEmpty()){
+        if(type==3){
+            yield = TRUE;
+        }
+    }else if (type==3 && status != IdleMode) {
+        yield = TRUE;
+    }
+    if(yield){
         interrupt->YieldOnReturn();
     }
+
     kernel->scheduler->Aging();
 }

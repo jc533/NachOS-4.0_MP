@@ -32,9 +32,10 @@
 
 Scheduler::Scheduler() {
     // readyList = new List<Thread *>;
-    L1 = new List<Thread *>;
-    L2 = new List<Thread *>;
+    L1 = new SortedList<Thread *>(L1Compare);
+    L2 = new SortedList<Thread *>(L2Compare);
     L3 = new List<Thread *>;
+    watingList = new List<Thread *>;
     toBeDestroyed = NULL;
 }
 
@@ -45,9 +46,43 @@ Scheduler::Scheduler() {
 
 Scheduler::~Scheduler() {
     // delete readyList;
+    delete watingList;
     delete L1;
     delete L2;
     delete L3;
+}
+
+int
+Scheduler::L1Compare(Thread* x, Thread* y) {
+    double a,b;
+    a = x->burstTime - x->T;
+    b = y->burstTime - y->T;
+    if (a < b){
+        return 1;
+    }else if (a == b){
+        if(x->getID()<y->getID()){
+            return 1;
+        }else{
+            return -1;
+        }
+    }else{
+        return -1;
+    }
+}
+
+int
+Scheduler::L2Compare(Thread* x, Thread* y) {
+    if (x->priority < y->priority){
+        return -1;
+    }else if (x->priority == y->priority){
+        if(x->getID()<y->getID()){
+            return 1;
+        }else{
+            return -1;
+        }
+    }else{
+        return 1;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -64,13 +99,14 @@ void Scheduler::ReadyToRun(Thread *thread) {
     // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
     // readyList->Append(thread);
-    thread->enterTick = kernel->stats->totalTicks;
+    // thread->enterTick = kernel->stats->totalTicks;
+    thread->waitTick = kernel->stats->totalTicks;
     if(thread->priority <= 49){
         L3->Append(thread); // round rodbin?
     }else if(thread->priority <= 99){
-        L2->Append(thread);//done nonpreemptive
+        L2->Insert(thread);//done nonpreemptive
     }else{
-        L1->Append(thread);// preemptive how?
+        L1->Insert(thread);// preemptive how?
     }
 }
 
@@ -95,62 +131,27 @@ Scheduler::FindNextToRun() {
     bool L2_empty = L2->IsEmpty();
     bool L3_empty = L3->IsEmpty();
 
-    int type = 0;
-    Thread* minSJF = kernel->currentThread;
-    Thread* largestPriority;
-    if(kernel->currentThread->priority<50){
-        type = 3;
-    }else if (kernel->currentThread->priority<100){
-        type = 2;
-    }else{
-        type = 1;
-    }
+    // int type = 0;
+    // Thread* minSJF = kernel->currentThread;
+    // Thread* largestPriority;
+    // if(kernel->currentThread->priority<50){
+    //     type = 3;
+    // }else if (kernel->currentThread->priority<100){
+    //     type = 2;
+    // }else{
+    //     type = 1;
+    // }
+    Thread* next = NULL;
 
-    if(L1_empty && L2_empty && L3_empty){
-        return NULL;
-    }else{
-        if(!L1_empty){
-            // return L1->RemoveFront();
-            for(int i=0;i<L1->NumInList();i++){
-                if(L1->Front()->burstTime < minSJF->burstTime){
-                    minSJF = L1->Front();
-                }else if(L1->Front()->burstTime == minSJF->burstTime){
-                    if(L1->Front()->getID()<largestPriority->getID()){
-                        largestPriority = L1->Front();
-                    }
-                }
-                L1->Append(L1->RemoveFront());
-            }
-            if(minSJF == kernel->currentThread){
-                return NULL;
-            }else{
-                L1->Remove(minSJF);
-                return minSJF;
-            }
-        }else if(!L2_empty && type>2){
-            largestPriority = L2->RemoveFront();
-            for(int i=0;i<L2->NumInList();i++){
-                if(L2->Front()->priority > largestPriority->priority){
-                    largestPriority = L2->Front();
-                }else if(L2->Front()->priority == largestPriority->priority){
-                    if(L2->Front()->getID()<largestPriority->getID()){
-                        largestPriority = L2->Front();
-                    }
-                }
-                L2->Append(L2->RemoveFront());
-            }
-            if(largestPriority == kernel->currentThread){
-                return NULL;
-            }else{
-                L2->Remove(largestPriority);
-                return largestPriority;
-            }
-            return largestPriority;
-        }else if(type == 3){
-            return L3->RemoveFront();
-        }
+        // return NULL;
+    if(!L1_empty){
+        next = L1->RemoveFront();
+    }else if(!L2_empty){
+        next = L2->RemoveFront();
+    }else if(!L3_empty){
+        next = L3->RemoveFront();
     }
-
+    return next;
 }
 
 //----------------------------------------------------------------------
@@ -173,6 +174,11 @@ Scheduler::FindNextToRun() {
 void Scheduler::Run(Thread *nextThread, bool finishing) {
     Thread *oldThread = kernel->currentThread;
 
+    if(oldThread != nextThread){
+        DEBUG(dbgScheduler,"[E] Tick ["<< kernel->stats->totalTicks <<"]: Thread ["<< nextThread->getID() <<"] is now selected for execution, thread ["<< oldThread->getID() <<"] is replaced, and it has executed [" << oldThread->T <<"] ticks");
+    }
+
+
     ASSERT(kernel->interrupt->getLevel() == IntOff);
 
     if (finishing) {  // mark that we need to delete current thread
@@ -189,6 +195,7 @@ void Scheduler::Run(Thread *nextThread, bool finishing) {
                                  // had an undetected stack overflow
 
     kernel->currentThread = nextThread;  // switch to the next thread
+    kernel->currentThread->enterTick = kernel->stats->totalTicks;// reset enter tick
     nextThread->setStatus(RUNNING);      // nextThread is now running
 
     DEBUG(dbgThread, "Switching from: " << oldThread->getName() << " to: " << nextThread->getName());
@@ -247,27 +254,34 @@ void Scheduler::Print() {
 
 
 void Scheduler::Aging(){
+//	ListIterator<T> *iter(list);
+//
+//	for (; !iter->IsDone(); iter->Next()) {
+//	    Operation on iter->Item()
+//      }
+
+
     for(int i=0;i<L3->NumInList();i++){
-        int waitTick = kernel->stats->totalTicks - L3->Front()->enterTick;
-        if(waitTick>1500){
+        int waitingTick = kernel->stats->totalTicks - L3->Front()->waitTick;
+        if(waitingTick>1500){
             L3->Front()->priority += 10;
-            L3->Front()->enterTick = kernel->stats->totalTicks;
+            L3->Front()->waitTick = kernel->stats->totalTicks;
             if(L3->Front()->priority > 49){
-                L2->Append(L3->RemoveFront());
+                L2->Insert(L3->RemoveFront());
             }else{
                 L3->Append(L3->RemoveFront());
             }
         } 
     }
     for(int i=0;i<L2->NumInList();i++){
-        int waitTick = kernel->stats->totalTicks - L2->Front()->enterTick;
-        if(waitTick>1500){
+        int waitingTick = kernel->stats->totalTicks - L2->Front()->waitTick;
+        if(waitingTick>1500){
             L2->Front()->priority += 10;
-            L2->Front()->enterTick = kernel->stats->totalTicks;
+            L2->Front()->waitTick = kernel->stats->totalTicks;
             if(L2->Front()->priority > 99){
-                L1->Append(L2->RemoveFront());
+                L1->Insert(L2->RemoveFront());
             }else{
-                L2->Append(L2->RemoveFront());
+                L2->Insert(L2->RemoveFront());
             }
         } 
     }
