@@ -74,7 +74,7 @@ void Alarm::CallBack() {
         }else if(type>=2){
             yield = TRUE;
         }
-    else if(!kernel->scheduler->L2->IsEmpty()){
+    }else if(!kernel->scheduler->L2->IsEmpty()){
         if(type==3){
             yield = TRUE;
         }
