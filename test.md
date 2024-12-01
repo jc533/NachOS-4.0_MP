@@ -14,14 +14,8 @@
 - Scheduler::ReadyToRun(Thread*)
 [](./code/threads/scheduler.cc#L55)
 
-1-2. Running→Ready
-Machine::Run()
-Interrupt::OneTick()
-Thread::Yield()
-Scheduler::FindNextToRun()
-Scheduler::ReadyToRun(Thread*)
-Scheduler::Run(Thread*, bool)
 
+nonpreemptive
 1-3. Running→Waiting (Note: only need to consider console output as an example)
 SynchConsoleOutput::PutChar(char)
       Semaphore::P()
@@ -30,15 +24,37 @@ SynchConsoleOutput::PutChar(char)
 Scheduler::FindNextToRun()
 Scheduler::Run(Thread*, bool)
 
-1-4. Waiting→Ready (Note: only need to consider console output as an example)
-   Semaphore::V()
-Scheduler::ReadyToRun(Thread*)
+
 1-5. Running→Terminated (Note: start from the Exit system call is called)
 ExceptionHandler(ExceptionType) case SC_Exit
    Thread::Finish()
    Thread::Sleep(bool)
 Scheduler::FindNextToRun()
 Scheduler::Run(Thread*, bool)
+
+
+preemptive
+1-4. Waiting→Ready (Note: only need to consider console output as an example)
+   Semaphore::V()
+Scheduler::ReadyToRun(Thread*)
+
+1-2. Running→Ready
+Machine::Run()
+Interrupt::OneTick()
+Thread::Yield()
+Scheduler::FindNextToRun()
+Scheduler::ReadyToRun(Thread*)
+Scheduler::Run(Thread*, bool)
+
+
+
+
+
+
+
+
+
+
 
 1-6. Ready→Running
 Scheduler::FindNextToRun()
