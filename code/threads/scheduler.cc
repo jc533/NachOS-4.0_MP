@@ -158,7 +158,8 @@ Scheduler::FindNextToRun() {
         next = L3->RemoveFront();
         L = 3;
     }
-    DEBUG(dbgScheduler,"[B] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<next->getID()<<"] is removed from queue L["<< L <<"]");
+    if(next)
+        DEBUG(dbgScheduler,"[B] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<next->getID()<<"] is removed from queue L["<< L <<"]");
     return next;
 }
 

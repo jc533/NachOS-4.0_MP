@@ -71,8 +71,8 @@ Thread::~Thread() {
 
 void Thread::updateBurst(){
     double NewBurstTime = 0.5*T+0.5*burstTime;
-    T = 0;
     DEBUG(dbgScheduler,"[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread ["<< this->getID() <<"] update approximate burst time, from: ["<<burstTime<<"], add ["<<T<<"], to ["<<NewBurstTime<<"]");
+    T = 0;
     burstTime = NewBurstTime;
 }
 void Thread::updateTick(){
@@ -262,11 +262,15 @@ void Thread::Sleep(bool finishing) {
         kernel->currentThread->updateBurst();
     }
     // cout << "debug Thread::Sleep " << name << "wait for Idle\n";
+    DEBUG(dbgScheduler,"1");
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL) {
+        DEBUG(dbgScheduler,"2");
         kernel->interrupt->Idle();  // no one to run, wait for an interrupt
     }
     // returns when it's time for us to run
+    DEBUG(dbgScheduler,"hi");
     kernel->scheduler->Run(nextThread, finishing);
+    DEBUG(dbgScheduler,"dkdkdk");
 }
 
 //----------------------------------------------------------------------
