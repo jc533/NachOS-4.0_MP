@@ -96,6 +96,7 @@ Scheduler::FindNextToRun() {
     bool L3_empty = L3->IsEmpty();
 
     int type = 0;
+    Thread* minSJF = kernel->currentThread;
     if(kernel->currentThread->priority<50){
         type = 3;
     }else if (kernel->currentThread->priority<100){
@@ -108,7 +109,19 @@ Scheduler::FindNextToRun() {
         return NULL;
     }else{
         if(!L1_empty){
-            return L1->RemoveFront();
+            // return L1->RemoveFront();
+            for(int i=0;i<L1->NumInList();i++){
+                if(L1->Front()->burstTime < minSJF->burstTime){
+                    minSJF = L1->Front();
+                }
+                L1->Append(L1->RemoveFront());
+            }
+            if(minSJF == kernel->currentThread){
+                return NULL;
+            }else{
+                L1->Remove(minSJF);
+                return minSJF;
+            }
         }else if(!L2_empty && type>2){
             return L2->RemoveFront();
         }else if(type == 3){
@@ -236,6 +249,4 @@ void Scheduler::Aging(){
             }
         } 
     }
-    // don't know L1 need to aging or not
-    
 }

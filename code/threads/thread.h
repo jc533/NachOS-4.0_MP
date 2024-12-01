@@ -135,6 +135,7 @@ class Thread {
     void RestoreUserState();  // restore user-level register state
     int priority;
     int enterTick;
+    int burstTime;
     AddrSpace *space;  // User code this thread is running.
 };
 
