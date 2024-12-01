@@ -97,6 +97,7 @@ Scheduler::FindNextToRun() {
 
     int type = 0;
     Thread* minSJF = kernel->currentThread;
+    Thread* largestPriority;
     if(kernel->currentThread->priority<50){
         type = 3;
     }else if (kernel->currentThread->priority<100){
@@ -123,7 +124,24 @@ Scheduler::FindNextToRun() {
                 return minSJF;
             }
         }else if(!L2_empty && type>2){
-            return L2->RemoveFront();
+            largestPriority = L2->RemoveFront();
+            for(int i=0;i<L2->NumInList();i++){
+                if(L2->Front()->priority > largestPriority->priority){
+                    largestPriority = L2->Front();
+                }else if(L2->Front()->priority == largestPriority->priority){
+                    if(L2->Front()->getID()<largestPriority->getID()){
+                        largestPriority = L2->Front();
+                    }
+                }
+                L2->Append(L2->RemoveFront());
+            }
+            if(largestPriority == kernel->currentThread){
+                return NULL;
+            }else{
+                L2->Remove(largestPriority);
+                return largestPriority;
+            }
+            return largestPriority;
         }else if(type == 3){
             return L3->RemoveFront();
         }
