@@ -103,8 +103,8 @@ class Thread {
     ThreadStatus getStatus() { return (status); }
     char *getName() { return (name); }
 
-    void updateBurst(){}
-    void updateTick(){}
+    void updateBurst();
+    void updateTick();
 
     int getID() { return (ID); }
     void setIsExec() { this->isExec = true; }

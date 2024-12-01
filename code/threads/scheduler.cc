@@ -58,27 +58,27 @@ Scheduler::L1Compare(Thread* x, Thread* y) {
     a = x->burstTime - x->T;
     b = y->burstTime - y->T;
     if (a < b){
-        return 1;
+        return -1;
     }else if (a == b){
         if(x->getID()<y->getID()){
-            return 1;
-        }else{
             return -1;
+        }else{
+            return 1;
         }
     }else{
-        return -1;
+        return 1;
     }
 }
 
 int
 Scheduler::L2Compare(Thread* x, Thread* y) {
-    if (x->priority < y->priority){
+    if (x->priority > y->priority){
         return -1;
     }else if (x->priority == y->priority){
         if(x->getID()<y->getID()){
-            return 1;
-        }else{
             return -1;
+        }else{
+            return 1;
         }
     }else{
         return 1;
