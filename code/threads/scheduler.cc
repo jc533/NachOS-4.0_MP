@@ -102,11 +102,14 @@ void Scheduler::ReadyToRun(Thread *thread) {
     // thread->enterTick = kernel->stats->totalTicks;
     thread->waitTick = kernel->stats->totalTicks;
     if(thread->priority <= 49){
-        L3->Append(thread); // round rodbin?
+        L3->Append(thread);
+        DEBUG(dbgScheduler,"[A] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<thread->getID()<<"] is inserted into queue L["<< 3 <<"]")
     }else if(thread->priority <= 99){
-        L2->Insert(thread);//done nonpreemptive
+        L2->Insert(thread);
+        DEBUG(dbgScheduler,"[A] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<thread->getID()<<"] is inserted into queue L["<< 2 <<"]")
     }else{
         L1->Insert(thread);// preemptive how?
+        DEBUG(dbgScheduler,"[A] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<thread->getID()<<"] is inserted into queue L["<< 1 <<"]")
     }
 }
 
@@ -144,13 +147,18 @@ Scheduler::FindNextToRun() {
     Thread* next = NULL;
 
         // return NULL;
+    int L=0;
     if(!L1_empty){
         next = L1->RemoveFront();
+        L = 1;
     }else if(!L2_empty){
         next = L2->RemoveFront();
+        L = 2;
     }else if(!L3_empty){
         next = L3->RemoveFront();
+        L = 3;
     }
+    DEBUG(dbgScheduler,"[B] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<next->getID()<<"] is removed from queue L["<< L <<"]");
     return next;
 }
 
@@ -265,8 +273,11 @@ void Scheduler::Aging(){
         int waitingTick = kernel->stats->totalTicks - L3->Front()->waitTick;
         if(waitingTick>1500){
             L3->Front()->priority += 10;
+            DEBUG(dbgScheduler,"[C] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<L3->Front()->getID()<<"] changes its priority from ["<<L3->Front()->priority-10<<"] to ["<<L3->Front()->priority<<"]");
             L3->Front()->waitTick = kernel->stats->totalTicks;
             if(L3->Front()->priority > 49){
+                DEBUG(dbgScheduler,"[B] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<L3->Front()->getID()<<"] is removed from queue L["<< 3 <<"]");
+                DEBUG(dbgScheduler,"[A] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<L3->Front()->getID()<<"] is inserted into queue L["<< 2 <<"]")
                 L2->Insert(L3->RemoveFront());
             }else{
                 L3->Append(L3->RemoveFront());
@@ -277,8 +288,11 @@ void Scheduler::Aging(){
         int waitingTick = kernel->stats->totalTicks - L2->Front()->waitTick;
         if(waitingTick>1500){
             L2->Front()->priority += 10;
+            DEBUG(dbgScheduler,"[C] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<L2->Front()->getID()<<"] changes its priority from ["<<L2->Front()->priority-10<<"] to ["<<L2->Front()->priority<<"]");
             L2->Front()->waitTick = kernel->stats->totalTicks;
             if(L2->Front()->priority > 99){
+                DEBUG(dbgScheduler,"[B] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<L2->Front()->getID()<<"] is removed from queue L["<< 2 <<"]");
+                DEBUG(dbgScheduler,"[A] Tick ["<<kernel->stats->totalTicks<<"]: Thread ["<<L2->Front()->getID()<<"] is inserted into queue L["<< 1 <<"]")
                 L1->Insert(L2->RemoveFront());
             }else{
                 L2->Insert(L2->RemoveFront());
