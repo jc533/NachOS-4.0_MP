@@ -44,8 +44,6 @@ class Scheduler {
    private:
     List<Thread*>* readyList;  // queue of threads that are ready to run,
                                // but not running
-    List<Thread*>* watingList;
-    
     Thread* toBeDestroyed;     // finishing thread to be destroyed
                                // by the next thread that runs
 };

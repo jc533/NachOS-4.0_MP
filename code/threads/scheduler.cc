@@ -35,7 +35,6 @@ Scheduler::Scheduler() {
     L1 = new SortedList<Thread *>(L1Compare);
     L2 = new SortedList<Thread *>(L2Compare);
     L3 = new List<Thread *>;
-    watingList = new List<Thread *>;
     toBeDestroyed = NULL;
 }
 
@@ -46,7 +45,6 @@ Scheduler::Scheduler() {
 
 Scheduler::~Scheduler() {
     // delete readyList;
-    delete watingList;
     delete L1;
     delete L2;
     delete L3;
