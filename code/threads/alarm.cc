@@ -55,6 +55,7 @@ void Alarm::CallBack() {
     }else{
         type = 1;
     }
+    kernel->scheduler->Aging();
     // yield for preemptive
     if(status == RUNNING){
         kernel->currentThread->T = kernel->stats->totalTicks - kernel->currentThread->enterTick;
@@ -85,5 +86,5 @@ void Alarm::CallBack() {
         interrupt->YieldOnReturn();
     }
 
-    kernel->scheduler->Aging();
+    
 }
