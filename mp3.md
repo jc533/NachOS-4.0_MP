@@ -5,19 +5,19 @@ understand how nachos manages the lifecycle of a process (or thread) as describe
 
 1-1. New→Ready
 - Kernel::ExecAll()
-[](./code/threads/kernel.cc#L255)
-
-- Kernel::Exec(char*)
 [](./code/threads/kernel.cc#L263)
 
+- Kernel::Exec(char*)
+[](./code/threads/kernel.cc#L271)
+
 - Thread::Fork(VoidFunctionPtr, void*)
-[](./code/threads/thread.cc#L91)
+[](./code/threads/thread.cc#L104)
 
 - Thread::StackAllocate(VoidFunctionPtr, void*)
-[](./code/threads/thread.cc#L301)
+[](./code/threads/thread.cc#L319)
 
 - Scheduler::ReadyToRun(Thread*)
-[](./code/threads/xscheduler.cc#L55)
+[](./code/threads/scheduler.cc#L96)
 
 1-2. Running→Ready
 - Machine::Run()
@@ -27,16 +27,16 @@ understand how nachos manages the lifecycle of a process (or thread) as describe
 [](./code/machine/interrupt.cc#L145)
 
 - Thread::Yield()
-[](./code/threads/thread.cc#L200)
+[](./code/threads/thread.cc#L213)
 
 - Scheduler::FindNextToRun()
-[](./code/threads/scheduler.cc#L72)
+[](./code/threads/scheduler.cc#L125)
 
 - Scheduler::ReadyToRun(Thread*)
-[](./code/threads/scheduler.cc#L55)
+[](./code/threads/scheduler.cc#L96)
 
 - Scheduler::Run(Thread*, bool)
-[](./code/threads/scheduler.cc#L99)
+[](./code/threads/scheduler.cc#L183)
 
 1-3. Running→Waiting (Note: only need to consider console output as an example)
 - SynchConsoleOutput::PutChar(char)
@@ -49,13 +49,13 @@ understand how nachos manages the lifecycle of a process (or thread) as describe
 [](./code/lib/list.cc#L70)
 
 - Thread::Sleep(bool)
-[](./code/threads/thread.cc#L236)
+[](./code/threads/thread.cc#L250)
 
 - Scheduler::FindNextToRun()
-[](./code/threads/scheduler.cc#L72)
+[](./code/threads/scheduler.cc#L125)
 
 - Scheduler::Run(Thread*, bool)
-[](./code/threads/scheduler.cc#L99)
+[](./code/threads/scheduler.cc#L183)
 
 1-4. Waiting→Ready (Note: only need to consider console output as an example)
 - Semaphore::V()
@@ -67,6 +67,7 @@ understand how nachos manages the lifecycle of a process (or thread) as describe
 [](./code/userprog/exception.cc#L50)
 - Thread::Finish()
 [](./code/threads/thread.cc#L280)
+[](./code/threads/thread.cc#L180)
 - Thread::Sleep(bool)
 [](./code/threads/thread.cc#L250)
 - Scheduler::FindNextToRun()
