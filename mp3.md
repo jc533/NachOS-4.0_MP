@@ -57,3 +57,31 @@ understand how nachos manages the lifecycle of a process (or thread) as describe
 - Scheduler::Run(Thread*, bool)
 [](./code/threads/scheduler.cc#L99)
 
+1-4. Waiting→Ready (Note: only need to consider console output as an example)
+- Semaphore::V()
+[](./code/threads/synch.cc#L100)
+- Scheduler::ReadyToRun(Thread*)
+[](./code/threads/scheduler.cc#L96)
+1-5. Running→Terminated (Note: start from the Exit system call is called)
+- ExceptionHandler(ExceptionType) case SC_Exit
+[](./code/userprog/exception.cc#L50)
+- Thread::Finish()
+[](./code/threads/thread.cc#L280)
+- Thread::Sleep(bool)
+[](./code/threads/thread.cc#L250)
+- Scheduler::FindNextToRun()
+[](./code/threads/scheduler.cc#L125)
+- Scheduler::Run(Thread*, bool)
+[](./code/threads/scheduler.cc#L183)
+1-6. Ready→Running
+- Scheduler::FindNextToRun()
+[](./code/threads/scheduler.cc#L125)
+- Scheduler::Run(Thread*, bool)
+[](./code/threads/scheduler.cc#L183)
+- SWITCH(Thread*, Thread*)
+[](./code/threads/switch.S#L295)
+(depends on the previous process state, e.g.,
+[New,Running,Waiting]→Ready→Running)
+
+- for loop in Machine::Run()
+[](./code/machine/mipssim.cc#L54)
